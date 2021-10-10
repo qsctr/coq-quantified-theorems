@@ -10,5 +10,9 @@ Fixpoint append (append_arg0 : Lst) (append_arg1 : Lst) : Lst
 
 Theorem theorem0 : forall (x : Lst), eq x (append x nil).
 Proof.
-Admitted.
+   intros.
+   induction x.
+   - simpl. rewrite <- IHx. reflexivity.
+   - simpl. reflexivity.
+Qed.
 

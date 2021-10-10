@@ -21,7 +21,16 @@ Fixpoint double (double_arg0 : Nat) : Nat
               | succ n => succ (succ (double n))
               end.
 
+Lemma lem: forall m n, succ (plus m n) = plus m (succ n).
+Proof.
+   induction m.
+   - intros. simpl. rewrite IHm. reflexivity.
+   - intros. reflexivity.
+Qed.
+
 Theorem theorem0 : forall (x : Nat), eq (double x) (plus x x).
 Proof.
-Admitted.
-
+   induction x.
+   - simpl. f_equal. rewrite IHx. apply lem.
+   - reflexivity.
+Qed.

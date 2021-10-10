@@ -10,5 +10,9 @@ Fixpoint tsize (tsize_arg0 : Tree) : nat
 
 Theorem theorem0 : forall (x : Tree), ge (tsize x) 0.
 Proof.
-Admitted.
+   intros.
+   induction x.
+   - simpl. apply le_O_n.
+   - simpl. auto.
+Qed.
 

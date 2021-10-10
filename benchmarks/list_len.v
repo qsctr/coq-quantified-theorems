@@ -10,5 +10,9 @@ Fixpoint len (len_arg0 : Lst) : nat
 
 Theorem theorem0 : forall (x : Lst), ge (len x) 0.
 Proof.
-Admitted.
+   intros.
+   induction x.
+   - simpl. auto.
+   - simpl. auto.
+Qed.
 
