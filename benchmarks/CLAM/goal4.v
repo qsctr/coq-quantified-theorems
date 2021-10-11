@@ -27,7 +27,17 @@ Fixpoint len (len_arg0 : Lst) : Nat
               | cons x y => succ (len y)
               end.
 
+Lemma lem : forall l1 l2 n, succ (len (append l1 l2)) = len (append l1 (cons n l2)).
+Proof.
+   induction l1.
+   - intros. simpl. f_equal. apply IHl1.
+   - intros. reflexivity.
+Qed.
+
 Theorem theorem0 : forall (x : Lst), eq (len (append x x)) (double (len x)).
 Proof.
-Admitted.
-
+induction x.
+   - simpl. rewrite <- IHx. f_equal. rewrite (lem x x n). reflexivity.
+   - reflexivity.
+Qed.
+              

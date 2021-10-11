@@ -16,5 +16,9 @@ Fixpoint len (len_arg0 : Lst) : nat
 
 Theorem theorem0 : forall (x : Lst) (y : Lst), eq (len (append x y)) (plus (len x) (len y)).
 Proof.
-Admitted.
+   intros.
+   induction x.
+   - simpl. rewrite IHx. reflexivity.
+   - simpl. reflexivity.
+Qed.
 

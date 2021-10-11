@@ -16,5 +16,12 @@ Fixpoint tsize (tsize_arg0 : Tree) : nat
 
 Theorem theorem0 : forall (t : Tree) (n : nat), eq (tsize (tinsert t n)) (plus 1 (tsize t)).
 Proof.
-Admitted.
+   intros.
+   induction t.
+   -  simpl. destruct (ltb n0 n).
+   + simpl. rewrite IHt2. f_equal. rewrite <- plus_n_Sm. 
+   reflexivity.
+  + simpl. rewrite IHt1. reflexivity.
+  - reflexivity.
+Qed.
 
