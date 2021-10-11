@@ -21,7 +21,23 @@ Fixpoint rev (rev_arg0 : Lst) : Lst
               | cons x y => append (rev y) (cons x nil)
               end.
 
+Lemma lem: forall l n, cons n (rev l) = rev (append l (cons n nil)).
+Proof.
+intros. induction l.
+  - simpl. rewrite <- IHl. reflexivity.
+  - reflexivity.
+Qed.
+
+Lemma lem2: forall l, rev (rev l) = l.
+Proof.
+induction l.
+  - simpl. rewrite <- lem. rewrite IHl. reflexivity.
+  - reflexivity.
+Qed.
+
 Theorem theorem0 : forall (x : Lst) (y : Lst), eq (append (rev (rev x)) y) (rev (rev (append x y))).
 Proof.
-Admitted.
+  intros. rewrite lem2. rewrite lem2. reflexivity.
+Qed.
+
 

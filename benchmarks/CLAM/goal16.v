@@ -18,10 +18,19 @@ Fixpoint plus (plus_arg0 : Nat) (plus_arg1 : Nat) : Nat
 Fixpoint even (even_arg0 : Nat) : bool
            := match even_arg0 with
               | zero => true
-              | succ n => not (even n)
+              | succ n => negb (even n)
               end.
+
+Lemma lem: forall m n, even (plus m n) = negb (even (plus m (succ n))).
+Proof.
+induction m.
+  - intros. simpl. rewrite <- IHm. reflexivity.
+  - intros. simpl. unfold negb. destruct (even n). reflexivity. reflexivity.
+Qed.
 
 Theorem theorem0 : forall (x : Nat), eq (even (plus x x)) true.
 Proof.
-Admitted.
-
+induction x.
+- simpl. rewrite <- lem. assumption.
+- reflexivity.
+Qed.
