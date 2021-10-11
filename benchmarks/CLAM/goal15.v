@@ -15,7 +15,17 @@ Fixpoint plus (plus_arg0 : Nat) (plus_arg1 : Nat) : Nat
               | succ n, m => succ (plus n m)
               end.
 
+Lemma lem: forall m n, succ (plus m n) = plus m (succ n).
+Proof.
+intros. simpl. induction m.
+  - simpl. rewrite IHm. reflexivity.
+  - reflexivity.
+Qed.
+
 Theorem theorem0 : forall (x : Nat), eq (plus x (succ x)) (succ (plus x x)).
 Proof.
-Admitted.
+induction x.
+  - simpl. rewrite IHx. f_equal. rewrite lem. rewrite lem. reflexivity.
+  - reflexivity.
+Qed.
 
