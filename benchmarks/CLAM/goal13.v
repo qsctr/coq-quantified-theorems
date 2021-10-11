@@ -22,7 +22,21 @@ Fixpoint half (half_arg0 : Nat) : Nat
               | succ (succ n) => succ (half n)
               end.
 
+
+Lemma lem: forall m n, plus (succ m) n = plus m (succ n).
+Proof.
+intros. simpl. induction m.
+  - simpl. rewrite IHm. reflexivity.
+  - reflexivity.
+Qed.
+
 Theorem theorem0 : forall (x : Nat), eq (half (plus x x)) x.
 Proof.
-Admitted.
+induction x.
+  - simpl. destruct x.
+    * simpl. rewrite <- lem. rewrite IHx. reflexivity.
+    * reflexivity.
+  - reflexivity.
+Qed.
+
 

@@ -27,7 +27,17 @@ Fixpoint qreva (qreva_arg0 : Lst) (qreva_arg1 : Lst) : Lst
               | cons z x, y => qreva x (cons z y)
               end.
 
+Lemma append_assoc: forall l1 l2 l3, 
+  append l1 (append l2 l3) = append (append l1 l2) l3.
+Proof.
+induction l1.
+  - simpl. intros. rewrite IHl1. reflexivity.
+  - reflexivity.
+Qed.
+
 Theorem theorem0 : forall (x : Lst) (y : Lst), eq (qreva x y) (append (rev x) y).
 Proof.
-Admitted.
-
+induction x.
+  - intros. simpl. rewrite <- append_assoc. simpl. rewrite <- IHx. reflexivity.
+  - intros. reflexivity.
+Qed.
