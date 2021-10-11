@@ -10,5 +10,9 @@ Fixpoint hsize (hsize_arg0 : Heap) : nat
 
 Theorem theorem0 : forall (x : Heap), ge (hsize x) 0.
 Proof.
-Admitted.
+   intros.
+   induction x.
+   - simpl. auto.
+   - simpl. apply le_O_n.
+Qed.
 
