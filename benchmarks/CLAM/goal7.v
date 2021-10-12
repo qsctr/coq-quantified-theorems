@@ -39,7 +39,20 @@ Fixpoint qreva (qreva_arg0 : Lst) (qreva_arg1 : Lst) : Lst
               | cons z x, y => qreva x (cons z y)
               end.
 
+Theorem plus_comm: forall (n m: Nat), plus n m = plus m n.
+Proof.
+  induction n; induction m.
+  { simpl. rewrite IHn. rewrite <- IHm. simpl. rewrite IHn. reflexivity. }
+  { simpl. rewrite IHn. simpl. reflexivity. }
+  { simpl. rewrite <- IHm. simpl. reflexivity. }
+  { reflexivity. }
+Qed.
 Theorem theorem0 : forall (x : Lst) (y : Lst), eq (len (qreva x y)) (plus (len x) (len y)).
 Proof.
-Admitted.
-
+  induction x; induction y; simpl; try reflexivity.
+  { rewrite plus_comm. simpl.
+    rewrite IHx. simpl. rewrite plus_comm.
+    simpl. reflexivity. }
+  { rewrite plus_comm. simpl. rewrite IHx. rewrite plus_comm.
+    simpl. reflexivity. }
+Qed.
