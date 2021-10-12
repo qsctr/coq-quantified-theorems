@@ -18,7 +18,7 @@ Fixpoint plus (plus_arg0 : Nat) (plus_arg1 : Nat) : Nat
 Fixpoint even (even_arg0 : Nat) : bool
            := match even_arg0 with
               | zero => true
-              | succ n => not (even n)
+              | succ n => negb (even n)
               end.
 
 Fixpoint append (append_arg0 : Lst) (append_arg1 : Lst) : Lst
@@ -33,7 +33,13 @@ Fixpoint len (len_arg0 : Lst) : Nat
               | cons x y => succ (len y)
               end.
 
+
+(* No helper lemma needed. *)
 Theorem theorem0 : forall (x : Lst) (y : Lst), eq (even (len (append x y))) (even (plus (len x) (len y))).
 Proof.
-Admitted.
+ induction x.
+  - intros. simpl. rewrite IHx. reflexivity.
+  - intros. reflexivity.
+Qed.
+
 
