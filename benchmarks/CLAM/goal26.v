@@ -22,7 +22,18 @@ Fixpoint half (half_arg0 : Nat) : Nat
               | succ (succ n) => succ (half n)
               end.
 
+Theorem plus_comm: forall (n m: Nat), plus n m = plus m n.
+Proof.
+  induction n; induction m.
+  { simpl. rewrite IHn. rewrite <- IHm. simpl. rewrite IHn. reflexivity. }
+  { simpl. rewrite IHn. simpl. reflexivity. }
+  { simpl. rewrite <- IHm. simpl. reflexivity. }
+  { reflexivity. }
+Qed.
+
 Theorem theorem0 : forall (x : Nat) (y : Nat), eq (half (plus x y)) (half (plus y x)).
 Proof.
-Admitted.
-
+  intros.
+  rewrite plus_comm.
+  reflexivity.
+Qed.
