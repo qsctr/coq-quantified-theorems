@@ -12,7 +12,7 @@ with ZLst : Type := zcons : Pair -> ZLst -> ZLst |  znil : ZLst.
 Fixpoint even (even_arg0 : Nat) : bool
            := match even_arg0 with
               | zero => true
-              | succ n => not (even n)
+              | succ n => negb (even n)
               end.
 
 Fixpoint append (append_arg0 : Lst) (append_arg1 : Lst) : Lst
