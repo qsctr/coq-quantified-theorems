@@ -1,6 +1,6 @@
 Require Import Nat Arith.
 
-Inductive Nat : Type := succ : Nat -> Nat |  zero : Nat.
+Inductive Nat : Type := zero : Nat | succ : Nat -> Nat.
 
 Inductive Lst : Type := cons : Nat -> Lst -> Lst |  nil : Lst.
 
@@ -33,7 +33,90 @@ Fixpoint qfac (qfac_arg0 : Nat) (qfac_arg1 : Nat) : Nat
               | succ n, m => qfac n (mult m n)
               end.
 
-Theorem theorem0 : forall (x : Nat), eq (fac x) (qfac x (succ zero)).
+Lemma plus_succ : forall (x y : Nat), plus x (succ y) = succ (plus x y).
 Proof.
-Admitted.
+  intros.
+  induction x.
+  - reflexivity.
+  - simpl. rewrite IHx. reflexivity.
+Qed.
 
+Lemma plus_assoc : forall (x y z : Nat), plus (plus x y) z = plus x (plus y z).
+Proof.
+  intros.
+  induction x.
+  - reflexivity.
+  - simpl. rewrite IHx. reflexivity.
+Qed.
+
+Lemma plus_zero : forall (x : Nat), plus x zero = x.
+Proof.
+  intros.
+  induction x.
+  - reflexivity.
+  - simpl. rewrite IHx. reflexivity.
+Qed.
+
+Lemma plus_commut : forall (x y : Nat), plus x y = plus y x.
+Proof.
+  intros.
+  induction x.
+  - rewrite plus_zero. reflexivity.
+  - simpl. rewrite plus_succ. rewrite IHx. reflexivity.
+Qed.
+
+Lemma mult_zero : forall (x : Nat), mult x zero = zero.
+Proof.
+  intros.
+  induction x.
+  - reflexivity.
+  - simpl. rewrite IHx. reflexivity.
+Qed.
+
+Lemma mult_succ : forall (x y : Nat), plus (mult x y) x = mult x (succ y).
+Proof.
+  intros.
+  induction x.
+  - reflexivity.
+  - simpl. rewrite plus_succ. rewrite plus_assoc. rewrite (plus_commut y x). rewrite <- plus_assoc. rewrite IHx. rewrite plus_succ. reflexivity.
+Qed.
+
+Lemma mult_commut : forall (x y : Nat), mult x y = mult y x.
+Proof.
+  intros.
+  induction x.
+  - rewrite mult_zero. reflexivity.
+  - simpl. rewrite IHx. rewrite mult_succ. reflexivity.
+Qed.
+
+Lemma distrib : forall (x y z : Nat), mult (plus x y) z = plus (mult x z) (mult y z).
+Proof.
+  intros.
+  induction x.
+  - reflexivity.
+  - simpl. rewrite IHx. rewrite plus_assoc. rewrite (plus_commut (mult y z) z). rewrite <- plus_assoc. reflexivity.
+Qed.
+
+Lemma mult_assoc : forall (x y z : Nat), mult (mult x y) z = mult x (mult y z).
+Proof.
+  intros.
+  induction x.
+  - reflexivity.
+  - simpl. rewrite distrib. rewrite IHx. reflexivity.
+Qed.
+
+Lemma qfac_mult : forall (x y : Nat), qfac x y = mult (qfac x (succ zero)) y.
+Proof.
+  intro.
+  induction x.
+  - reflexivity.
+  - intros. simpl. rewrite IHx. rewrite (IHx x). rewrite mult_assoc. rewrite (mult_commut y x). reflexivity.
+Qed.
+
+Theorem fac_eq_qfac : forall (x : Nat), eq (fac x) (qfac x (succ zero)).
+Proof.
+  intros.
+  induction x.
+  - reflexivity.
+  - simpl. rewrite qfac_mult. rewrite IHx. reflexivity.
+Qed.
