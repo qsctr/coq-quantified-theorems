@@ -1,8 +1,8 @@
 Require Import Nat Arith.
 
-Inductive Nat : Type := succ : Nat -> Nat |  zero : Nat.
+Inductive Nat : Type := zero : Nat | succ : Nat -> Nat.
 
-Inductive Lst : Type := cons : Nat -> Lst -> Lst |  nil : Lst.
+Inductive Lst : Type := nil : Lst | cons : Nat -> Lst -> Lst.
 
 Inductive Tree : Type := node : Nat -> Tree -> Tree -> Tree |  leaf : Tree.
 
@@ -16,13 +16,21 @@ Fixpoint drop (drop_arg0 : Nat) (drop_arg1 : Lst) : Lst
               | succ x, cons y z => drop x z
               end.
 
-Fixpoint mem (mem_arg0 : Nat) (mem_arg1 : Lst) : bool
-           := match mem_arg0, mem_arg1 with
-              | x, nil => false
-              | x, cons y z => orb (eqb x y) (mem x z)
-              end.
+Fixpoint mem (mem_arg0 : Nat) (mem_arg1 : Lst) : Prop
+:= match mem_arg0, mem_arg1 with
+    | x, nil => False
+    | x, cons y z => x = y \/ mem x z
+    end.
 
-Theorem theorem0 : forall (x : Nat) (y : Nat) (z : Lst), eq (mem x (drop y z)) true -> eq (mem x z) true.
+Theorem theorem0 : forall (x : Nat) (y : Nat) (z : Lst), mem x (drop y z) -> mem x z.
 Proof.
-Admitted.
-
+  intros.
+  generalize dependent y.
+  induction z.
+  - intros. destruct y.
+    + contradiction.
+    + contradiction.
+  - intros. destruct y.
+    + assumption.
+    + simpl in H. apply IHz in H. simpl. auto.
+Qed.
