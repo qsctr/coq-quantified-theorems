@@ -2,7 +2,7 @@ Require Import Nat Arith.
 
 Inductive Nat : Type := succ : Nat -> Nat |  zero : Nat.
 
-Inductive Lst : Type := cons : Nat -> Lst -> Lst |  nil : Lst.
+Inductive Lst : Type :=  nil : Lst | cons : Nat -> Lst -> Lst.
 
 Inductive Tree : Type := node : Nat -> Tree -> Tree -> Tree |  leaf : Tree.
 
@@ -15,13 +15,18 @@ Fixpoint append (append_arg0 : Lst) (append_arg1 : Lst) : Lst
               | cons x y, z => cons x (append y z)
               end.
 
-Fixpoint mem (mem_arg0 : Nat) (mem_arg1 : Lst) : bool
+Fixpoint mem (mem_arg0 : Nat) (mem_arg1 : Lst) : Prop
            := match mem_arg0, mem_arg1 with
-              | x, nil => false
-              | x, cons y z => orb (eqb x y) (mem x z)
+              | x, nil => False
+              | x, cons y z => x = y \/ mem x z
               end.
 
-Theorem theorem0 : forall (x : Nat) (y : Lst) (z : Lst), eq (mem x y) true -> eq (mem x (append y z)) true.
+Theorem mem_append : forall (x : Nat) (y : Lst) (z : Lst), mem x y -> mem x (append y z).
 Proof.
-Admitted.
-
+  intros.
+  induction y.
+  - contradiction.
+  - simpl. destruct H.
+    + auto.
+    + apply IHy in H. auto.
+Qed.
