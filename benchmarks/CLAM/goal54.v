@@ -16,7 +16,31 @@ Fixpoint drop (drop_arg0 : Nat) (drop_arg1 : Lst) : Lst
               | succ x, cons y z => drop x z
               end.
 
+
+(*
+Lemma lem: forall n l, drop (succ n) l = drop (succ zero) (drop n l).
+Proof.
+intros. generalize dependent n. induction l.
+- intros. assert (drop (succ n0) (cons n l) = drop n0 l).
+  + reflexivity.
+  + rewrite H.
+*)
+
+Lemma lem: forall n1 n2 l, drop (succ n1) (drop n2 l) = drop n1 (drop (succ n2) l).
+intros. generalize dependent n1. generalize dependent n2. induction l.
+- intros. assert (forall n x l, drop (succ n) (cons x l) = drop n l). 
+  + intros. reflexivity.
+  + destruct n2.
+    * rewrite H. rewrite H. rewrite <- IHl. reflexivity.
+    * simpl. destruct l. reflexivity. reflexivity.
+- intros. assert (forall n, drop n nil = nil).
+  + intros. destruct n. reflexivity. reflexivity.
+  + rewrite H. rewrite H. rewrite H. reflexivity.
+Qed.
+
+
+(* It's possible this can be proven without a helper lemma but I couldn't figure it out. *)
 Theorem theorem0 : forall (w : Nat) (x : Nat) (y : Nat) (z : Lst), eq (drop (succ w) (drop x (cons y z))) (drop w (drop x z)).
 Proof.
-Admitted.
-
+intros. rewrite lem. reflexivity.
+Qed.

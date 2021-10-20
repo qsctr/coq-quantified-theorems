@@ -21,7 +21,10 @@ Fixpoint len (len_arg0 : Lst) : Nat
               | cons x y => succ (len y)
               end.
 
+(* No helper lemma needed. *)
 Theorem theorem0 : forall (x : Lst) (y : Nat) (z : Lst), eq (len (append x (cons y z))) (succ (len (append x z))).
 Proof.
-Admitted.
-
+induction x.
+- intros. simpl. rewrite IHx. reflexivity.
+- intros. reflexivity.
+Qed.
