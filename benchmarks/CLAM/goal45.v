@@ -1,16 +1,10 @@
-Require Import Nat Arith.
+Require Import Nat Arith Bool.
 
-Inductive Nat : Type := succ : Nat -> Nat |  zero : Nat.
+Inductive Nat : Type := zero : Nat | succ : Nat -> Nat.
 
-Fixpoint eqb (n m: Nat) : bool :=
-  match n, m with
-    | 0, 0 => true
-    | 0, S _ => false
-    | S _, 0 => false
-    | S n', S m' => eqb n' m'
-  end.
+Scheme Equality for Nat.
 
-Inductive Lst : Type := cons : Nat -> Lst -> Lst |  nil : Lst.
+Inductive Lst : Type := nil : Lst | cons : Nat -> Lst -> Lst.
 
 Inductive Tree : Type := node : Nat -> Tree -> Tree -> Tree |  leaf : Tree.
 
@@ -27,7 +21,7 @@ Fixpoint less (less_arg0 : Nat) (less_arg1 : Nat) : bool
 Fixpoint mem (mem_arg0 : Nat) (mem_arg1 : Lst) : bool
            := match mem_arg0, mem_arg1 with
               | x, nil => false
-              | x, cons y z => orb (eqb x y) (mem x z)
+              | x, cons y z => orb (Nat_beq x y) (mem x z)
               end.
 
 Fixpoint insort (insort_arg0 : Nat) (insort_arg1 : Lst) : Lst
@@ -42,6 +36,20 @@ Fixpoint sort (sort_arg0 : Lst) : Lst
               | cons x y => insort x (sort y)
               end.
 
+Lemma Nat_beq_refl : forall (n : Nat), Nat_beq n n = true.
+Proof.
+  intros.
+  induction n.
+  - reflexivity.
+  - assumption.
+Qed.
+
 Theorem theorem0 : forall (x : Nat) (y : Lst), eq (mem x (insort x y)) true.
 Proof.
-Admitted.
+  intros.
+  induction y.
+  - simpl. rewrite Nat_beq_refl. reflexivity.
+  - simpl. destruct (less x n).
+    + simpl. rewrite Nat_beq_refl. reflexivity.
+    + simpl. rewrite IHy. apply orb_true_r.
+Qed.
