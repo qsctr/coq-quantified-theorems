@@ -17,15 +17,6 @@ Fixpoint drop (drop_arg0 : Nat) (drop_arg1 : Lst) : Lst
               end.
 
 
-(*
-Lemma lem: forall n l, drop (succ n) l = drop (succ zero) (drop n l).
-Proof.
-intros. generalize dependent n. induction l.
-- intros. assert (drop (succ n0) (cons n l) = drop n0 l).
-  + reflexivity.
-  + rewrite H.
-*)
-
 Lemma lem: forall n1 n2 l, drop (succ n1) (drop n2 l) = drop n1 (drop (succ n2) l).
 intros. generalize dependent n1. generalize dependent n2. induction l.
 - intros. assert (forall n x l, drop (succ n) (cons x l) = drop n l). 

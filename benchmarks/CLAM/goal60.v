@@ -23,5 +23,8 @@ Fixpoint rev (rev_arg0 : Lst) : Lst
 
 Theorem theorem0 : forall (x : Lst) (y : Nat), eq (rev (append (append x (cons y nil)) nil)) (cons y (rev (append x nil))).
 Proof.
-Admitted.
+induction x.
+- intros. simpl. rewrite IHx. reflexivity.
+- intros. reflexivity.
+Qed.
 
