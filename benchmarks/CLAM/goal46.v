@@ -16,6 +16,14 @@ Fixpoint less (less_arg0 : Nat) (less_arg1 : Nat) : bool
               | succ x, succ y => less x y
               end.
 
+Fixpoint eqb (n m: Nat) : bool :=
+  match n, m with
+    | zero, zero => true
+    | zero, succ _ => false
+    | succ _, zero => false
+    | succ n', succ m' => eqb n' m'
+  end.
+
 Fixpoint mem (mem_arg0 : Nat) (mem_arg1 : Lst) : bool
            := match mem_arg0, mem_arg1 with
               | x, nil => false
@@ -34,7 +42,20 @@ Fixpoint sort (sort_arg0 : Lst) : Lst
               | cons x y => insort x (sort y)
               end.
 
+Theorem eqb_refl: forall n, eqb n n = true.
+Proof.
+  induction n; simpl.
+  { assumption. }
+  { reflexivity. }
+Qed.
+
 Theorem theorem0 : forall (x : Nat) (y : Nat) (z : Lst), eq x y -> eq (mem x (insort y z)) true.
 Proof.
-Admitted.
-
+  intros.
+  induction z.
+  { subst. simpl. destruct (less y n).
+    { simpl. rewrite eqb_refl. simpl. reflexivity. }
+    { simpl. rewrite IHz. apply Bool.orb_true_r. }
+  }
+  { simpl. subst. rewrite eqb_refl. simpl. reflexivity. }
+Qed.

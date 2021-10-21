@@ -2,6 +2,14 @@ Require Import Nat Arith.
 
 Inductive Nat : Type := succ : Nat -> Nat |  zero : Nat.
 
+Fixpoint eqb (n m: Nat) : bool :=
+  match n, m with
+    | 0, 0 => true
+    | 0, S _ => false
+    | S _, 0 => false
+    | S n', S m' => eqb n' m'
+  end.
+
 Inductive Lst : Type := cons : Nat -> Lst -> Lst |  nil : Lst.
 
 Inductive Tree : Type := node : Nat -> Tree -> Tree -> Tree |  leaf : Tree.
@@ -37,4 +45,3 @@ Fixpoint sort (sort_arg0 : Lst) : Lst
 Theorem theorem0 : forall (x : Nat) (y : Lst), eq (mem x (insort x y)) true.
 Proof.
 Admitted.
-
