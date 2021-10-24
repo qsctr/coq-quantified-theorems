@@ -1,6 +1,6 @@
-Require Import Nat Arith.
+Require Import Nat Arith Bool.
 
-Inductive Nat : Type := succ : Nat -> Nat |  zero : Nat.
+Inductive Nat : Type := zero : Nat | succ : Nat -> Nat.
 
 Inductive Lst : Type := cons : Nat -> Lst -> Lst |  nil : Lst.
 
@@ -23,5 +23,9 @@ Fixpoint even (even_arg0 : Nat) : bool
 
 Theorem theorem0 : forall (x : Nat) (y : Nat), eq (even (plus x y)) (even (plus x (succ (succ y)))).
 Proof.
-Admitted.
+  intros.
+  induction x.
+  - simpl. rewrite negb_involutive. reflexivity.
+  - simpl. rewrite IHx. reflexivity.
+Qed.
 
