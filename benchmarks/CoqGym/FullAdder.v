@@ -157,43 +157,60 @@ rewrite plus_comm.
 rewrite plus_permute.
 auto with arith.
 Qed.
-Require Import List.
 
-Section Lists_compl.
-Variable A: Set.
-Lemma app_eq2 : forall (x : A) (l l' : list A), (x :: l) ++ l' = x :: l ++ l'.
+Inductive BoolList : Type :=
+| nil : BoolList
+| cons : bool -> BoolList -> BoolList.
+
+Infix "::" := cons (at level 60, right associativity).
+
+Definition length : BoolList -> nat :=
+  fix length l :=
+  match l with
+   | nil => O
+   | _ :: l' => S (length l')
+  end.
+
+Definition app : BoolList -> BoolList -> BoolList :=
+  fix app l m :=
+  match l with
+   | nil => m
+   | a :: l1 => a :: app l1 m
+  end.
+
+Infix "++" := app (right associativity, at level 60).
+
+Lemma app_eq2 : forall (x : bool) (l l' : BoolList), (x :: l) ++ l' = x :: l ++ l'.
 auto. Qed.
 
-Inductive len : list A -> nat -> Prop :=
+Inductive len : BoolList -> nat -> Prop :=
  (************)
   | len_nil : len nil 0
   | len_cons :
-      forall (b : A) (v : list A) (l : nat), len v l -> len (b :: v) (S l).
+      forall (b : bool) (v : BoolList) (l : nat), len v l -> len (b :: v) (S l).
 
 Lemma length_eq2 :
- forall (x : A) (l : list A), length (x :: l) = S (length l).
+ forall (x : bool) (l : BoolList), length (x :: l) = S (length l).
   auto with arith. Qed.
 
-Lemma len_length : forall v : list A, len v (length v).
+Lemma len_length : forall v : BoolList, len v (length v).
 (***************)
 simple induction v. auto with arith. simpl. apply len_nil.
 intros. rewrite length_eq2. apply len_cons. exact H.
 Qed.
 
-End Lists_compl.
-
-Definition BV := list bool.
+Definition BV := BoolList.
 Definition nilbv : BV := nil.
-Definition consbv : bool -> BV -> BV := cons (A:=bool).
-Definition appbv : BV -> BV -> BV := app (A:=bool).
-Definition lengthbv : BV -> nat := length (A:=bool).
-Definition lenbv : BV -> nat -> Prop := len bool.
+Definition consbv : bool -> BV -> BV := cons.
+Definition appbv : BV -> BV -> BV := app.
+Definition lengthbv : BV -> nat := length.
+Definition lenbv : BV -> nat -> Prop := len.
 
 Definition BV_full_adder_sum :=
-  (fix F (l : list bool) : list bool -> bool -> BV :=
+  (fix F (l : BoolList) : BoolList -> bool -> BV :=
      match l with
      | nil =>
-         (fix F0 (l0 : list bool) : bool -> BV :=
+         (fix F0 (l0 : BoolList) : bool -> BV :=
             match l0 with
             | nil => fun _ : bool => nilbv
             | cons b l1 =>
@@ -201,7 +218,7 @@ Definition BV_full_adder_sum :=
                 consbv (half_adder_sum b z) (F0 l1 (half_adder_carry b z))
             end)
      | cons b l0 =>
-         fun x2 : list bool =>
+         fun x2 : BoolList =>
          match x2 with
          | nil =>
              fun y z : bool =>
@@ -221,7 +238,7 @@ Proof.
 Qed.
 
 Lemma BV_full_adder_sum_eq2 :
- forall (vh : bool) (vt : list bool) (b : bool),
+ forall (vh : bool) (vt : BoolList) (b : bool),
  BV_full_adder_sum nil (vh :: vt) b =
  consbv (half_adder_sum vh b)
    (BV_full_adder_sum nil vt (half_adder_carry vh b)).
@@ -230,7 +247,7 @@ Proof.
 Qed.
 
 Lemma BV_full_adder_sum_eq3 :
- forall (vh : bool) (vt : list bool) (b : bool),
+ forall (vh : bool) (vt : BoolList) (b : bool),
  BV_full_adder_sum (vh :: vt) nil b =
  consbv (half_adder_sum vh b)
    (BV_full_adder_sum vt nil (half_adder_carry vh b)).
@@ -239,7 +256,7 @@ Proof.
 Qed.
 
 Lemma BV_full_adder_sum_eq4 :
- forall (vh : bool) (vt : list bool) (wh : bool) (wt : list bool) (b : bool),
+ forall (vh : bool) (vt : BoolList) (wh : bool) (wt : BoolList) (b : bool),
  BV_full_adder_sum (vh :: vt) (wh :: wt) b =
  consbv (full_adder_sum vh wh b)
    (BV_full_adder_sum vt wt (full_adder_carry vh wh b)).
@@ -248,30 +265,17 @@ Proof.
 Qed.
 
 
-(*Recursive Definition BV_full_adder_carry: (list bool)->(list bool)->bool->bool
-									   :=
-     (nil bool) (nil bool) b => b
-   | (nil bool) (cons vh vt) b =>
-	(BV_full_adder_carry (nil bool) vt (half_adder_carry vh b))
-   | (cons vh vt) (nil bool) b =>
-	(BV_full_adder_carry vt (nil bool) (half_adder_carry vh b))
-   | (cons vh vt) (cons wh wt) b =>
-	(BV_full_adder_carry vt wt (full_adder_carry vh wh b)).
-*)
-
-
-
 Definition BV_full_adder_carry :=
-  (fix F (l : list bool) : list bool -> bool -> bool :=
+  (fix F (l : BoolList) : BoolList -> bool -> bool :=
      match l with
      | nil =>
-         (fix F0 (l0 : list bool) : bool -> bool :=
+         (fix F0 (l0 : BoolList) : bool -> bool :=
             match l0 with
             | nil => fun z : bool => z
             | cons b l1 => fun z : bool => F0 l1 (half_adder_carry b z)
             end)
      | cons b l0 =>
-         fun x2 : list bool =>
+         fun x2 : BoolList =>
          match x2 with
          | nil => fun y z : bool => F l0 nil (half_adder_carry y z)
          | cons b0 l1 => fun y z : bool => F l0 l1 (full_adder_carry y b0 z)
@@ -287,7 +291,7 @@ Proof.
 Qed.
 
 Lemma BV_full_adder_carry_eq2 :
- forall (vh : bool) (vt : list bool) (b : bool),
+ forall (vh : bool) (vt : BoolList) (b : bool),
  BV_full_adder_carry nil (vh :: vt) b =
  BV_full_adder_carry nil vt (half_adder_carry vh b).
 Proof.
@@ -296,7 +300,7 @@ Qed.
 
 
 Lemma BV_full_adder_carry_eq3 :
- forall (vh : bool) (vt : list bool) (b : bool),
+ forall (vh : bool) (vt : BoolList) (b : bool),
  BV_full_adder_carry (vh :: vt) nil b =
  BV_full_adder_carry vt nil (half_adder_carry vh b).
 
@@ -305,7 +309,7 @@ Proof.
 Qed.
 
 Lemma BV_full_adder_carry_eq4 :
- forall (vh : bool) (vt : list bool) (wh : bool) (wt : list bool) (b : bool),
+ forall (vh : bool) (vt : BoolList) (wh : bool) (wt : BoolList) (b : bool),
  BV_full_adder_carry (vh :: vt) (wh :: wt) b =
  BV_full_adder_carry vt wt (full_adder_carry vh wh b).
 
@@ -317,7 +321,6 @@ Qed.
 Definition BV_full_adder (v w : BV) (cin : bool) : BV :=
   appbv (BV_full_adder_sum v w cin)
     (consbv (BV_full_adder_carry v w cin) nilbv).
-
 
 (****************************************************************)
 
@@ -352,7 +355,7 @@ Lemma length_BV_full_adder_sum :
  lengthbv v = lengthbv w -> lengthbv (BV_full_adder_sum v w cin) = lengthbv v.
 unfold lengthbv in |- *. simple induction v. simple induction w. intros. case cin. simpl in |- *. trivial.
 simpl in |- *. trivial.
-intros. absurd (length (nil:list bool) = length (a :: l)).
+intros. absurd (length (nil:BoolList) = length (b :: b0)).
 simpl in |- *. discriminate. exact H0. simple induction w. simpl in |- *. intros. discriminate H0.
 intros. simpl in |- *. rewrite H. trivial. generalize H1. simpl in |- *. auto.
 Qed.
@@ -394,10 +397,10 @@ Lemma BV_to_nat_app :
  lenbv l ll -> BV_to_nat (appbv l n) = BV_to_nat l + power2 ll * BV_to_nat n.
 unfold BV, lenbv, appbv in |- *. simple induction l. intros. inversion H. simpl in |- *. auto.
 intros. simpl in |- *. inversion H0. simpl in |- *.
-rewrite (H n l1). rewrite mult_plus_distr_r. repeat rewrite plus_assoc.
+rewrite (H n l0). rewrite mult_plus_distr_r. repeat rewrite plus_assoc.
 rewrite
- (plus_permute2 (bool_to_nat a + BV_to_nat l0) (power2 l1 * BV_to_nat n)
-    (BV_to_nat l0)).
+ (plus_permute2 (bool_to_nat b + BV_to_nat b0) (power2 l0 * BV_to_nat n)
+    (BV_to_nat b0)).
 auto.
 exact H4.
 Qed.
@@ -413,8 +416,8 @@ Lemma BV_full_adder_nil_true_ok :
  forall v : BV, BV_to_nat (BV_full_adder v nilbv true) = S (BV_to_nat v).
 unfold nilbv in |- *. simple induction v; auto with arith. unfold BV_full_adder in |- *. intros.
 rewrite BV_full_adder_sum_eq3. rewrite BV_full_adder_carry_eq3. unfold appbv.
-rewrite (app_eq2 bool). rewrite half_adder_carry_true.
-simpl in |- *. elim a. unfold appbv in H. rewrite H. simpl in |- *. auto with arith.
+rewrite app_eq2. rewrite half_adder_carry_true.
+simpl in |- *. elim b. unfold appbv in H. rewrite H. simpl in |- *. auto with arith.
 rewrite BV_full_adder_sum_v_nil_false.
 rewrite BV_full_adder_carry_v_nil_false. rewrite BV_to_nat_app2.
 simpl in |- *. elim mult_n_O. elim plus_n_O. trivial with arith.
@@ -448,6 +451,8 @@ auto with arith.
 
 unfold BV_full_adder in |- *.
 simple induction w.
+rename b into a.
+rename b0 into l.
 simpl in |- *.
 intro.
 rewrite H.
@@ -487,7 +492,10 @@ rewrite
  .
 trivial with arith.
 
-intros.
+ rename b into a.
+ rename b0 into l.
+ intros a0 l0.
+ intros.
 simpl in |- *.
 rewrite H.
 clear H.
