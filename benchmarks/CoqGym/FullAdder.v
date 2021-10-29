@@ -183,28 +183,17 @@ Infix "++" := app (right associativity, at level 60).
 Lemma app_eq2 : forall (x : bool) (l l' : BoolList), (x :: l) ++ l' = x :: l ++ l'.
 auto. Qed.
 
-Inductive len : BoolList -> nat -> Prop :=
- (************)
-  | len_nil : len nil 0
-  | len_cons :
-      forall (b : bool) (v : BoolList) (l : nat), len v l -> len (b :: v) (S l).
 
 Lemma length_eq2 :
  forall (x : bool) (l : BoolList), length (x :: l) = S (length l).
   auto with arith. Qed.
 
-Lemma len_length : forall v : BoolList, len v (length v).
-(***************)
-simple induction v. auto with arith. simpl. apply len_nil.
-intros. rewrite length_eq2. apply len_cons. exact H.
-Qed.
 
 Definition BV := BoolList.
 Definition nilbv : BV := nil.
 Definition consbv : bool -> BV -> BV := cons.
 Definition appbv : BV -> BV -> BV := app.
 Definition lengthbv : BV -> nat := length.
-Definition lenbv : BV -> nat -> Prop := len.
 
 Definition BV_full_adder_sum :=
   (fix F (l : BoolList) : BoolList -> bool -> BV :=
@@ -394,22 +383,32 @@ Fixpoint power2 (n : nat) : nat :=
 Lemma BV_to_nat_app :
  forall (l n : BV) (ll : nat),
  (******************)
- lenbv l ll -> BV_to_nat (appbv l n) = BV_to_nat l + power2 ll * BV_to_nat n.
-unfold BV, lenbv, appbv in |- *. simple induction l. intros. inversion H. simpl in |- *. auto.
-intros. simpl in |- *. inversion H0. simpl in |- *.
-rewrite (H n l0). rewrite mult_plus_distr_r. repeat rewrite plus_assoc.
-rewrite
- (plus_permute2 (bool_to_nat b + BV_to_nat b0) (power2 l0 * BV_to_nat n)
-    (BV_to_nat b0)).
-auto.
-exact H4.
+ length l = ll -> BV_to_nat (appbv l n) = BV_to_nat l + power2 ll * BV_to_nat n.
+unfold BV, appbv in |- *. simple induction l. intros. inversion H. simpl in |- *. auto.
+intros. simpl.
+destruct ll.
+inversion H0.
+inversion H0.
+rewrite (H n ll H2).
+rewrite <- (plus_assoc (bool_to_nat b) (BV_to_nat b0 + BV_to_nat b0)).
+f_equal.
+rewrite <- plus_assoc.
+rewrite <- (plus_assoc (BV_to_nat b0) (BV_to_nat b0)).
+f_equal.
+simpl.
+
+rewrite mult_plus_distr_r. repeat rewrite plus_assoc.
+subst.
+rewrite <- plus_assoc.
+rewrite Nat.add_comm.
+reflexivity.
 Qed.
 
 Lemma BV_to_nat_app2 :
  forall l n : BV,
  (*******************)
  BV_to_nat (appbv l n) = BV_to_nat l + power2 (lengthbv l) * BV_to_nat n.
-intros. apply BV_to_nat_app. auto. unfold lenbv, lengthbv in |- *. apply len_length.
+intros. apply BV_to_nat_app. auto.
 Qed.
 
 Lemma BV_full_adder_nil_true_ok :
