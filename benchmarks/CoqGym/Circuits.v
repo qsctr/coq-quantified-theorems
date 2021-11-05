@@ -164,18 +164,16 @@ Inductive BoolList : Type :=
 
 Infix "::" := cons (at level 60, right associativity).
 
-Definition length : BoolList -> nat :=
-  fix length l :=
+Fixpoint length (l: BoolList): nat :=
   match l with
-   | nil => O
-   | _ :: l' => S (length l')
+  | nil => O
+  | _ :: l' => S (length l')
   end.
 
-Definition app : BoolList -> BoolList -> BoolList :=
-  fix app l m :=
+Fixpoint app (l m: BoolList): BoolList :=
   match l with
-   | nil => m
-   | a :: l1 => a :: app l1 m
+  | nil => m
+  | a :: l1 => a :: app l1 m
   end.
 
 Infix "++" := app (right associativity, at level 60).
@@ -188,40 +186,54 @@ Lemma length_eq2 :
  forall (x : bool) (l : BoolList), length (x :: l) = S (length l).
   auto with arith. Qed.
 
+Fixpoint BV_full_adder_sum_nil (l0: BoolList) (b0: bool): BoolList :=
+  match l0 with
+  | nil => nil
+  | cons b l1 => cons (half_adder_sum b b0)
+                      (BV_full_adder_sum_nil l1 (half_adder_carry b b0))
+  end.
 
-Definition BV := BoolList.
-Definition nilbv : BV := nil.
-Definition consbv : bool -> BV -> BV := cons.
-Definition appbv : BV -> BV -> BV := app.
-Definition lengthbv : BV -> nat := length.
+Fixpoint BV_full_adder_sum (l m: BoolList) (bb: bool): BoolList :=
+  match l with
+  | nil => BV_full_adder_sum_nil m bb
+  | cons b l0 =>
+    match m with
+    | nil =>
+      cons (half_adder_sum b bb) (BV_full_adder_sum l0 nil (half_adder_carry b bb))
+    | cons b0 l1 =>
+      cons (full_adder_sum b b0 bb)
+           (BV_full_adder_sum l0 l1 (full_adder_carry b b0 bb))
+    end
+  end.
 
-Definition BV_full_adder_sum :=
-  (fix F (l : BoolList) : BoolList -> bool -> BV :=
-     match l with
-     | nil =>
-         (fix F0 (l0 : BoolList) : bool -> BV :=
-            match l0 with
-            | nil => fun _ : bool => nilbv
-            | cons b l1 =>
-                fun z : bool =>
-                consbv (half_adder_sum b z) (F0 l1 (half_adder_carry b z))
-            end)
-     | cons b l0 =>
-         fun x2 : BoolList =>
-         match x2 with
-         | nil =>
-             fun y z : bool =>
-             consbv (half_adder_sum y z) (F l0 nil (half_adder_carry y z))
-         | cons b0 l1 =>
-             fun y z : bool =>
-             consbv (full_adder_sum y b0 z)
-               (F l0 l1 (full_adder_carry y b0 z))
-         end b
-     end).
+
+(* Definition BV_full_adder_sum := *)
+(*   (fix F (l : BoolList) : BoolList -> bool -> BoolList := *)
+(*      match l with *)
+(*      | nil => *)
+(*          (fix F0 (l0 : BoolList) : bool -> BoolList := *)
+(*             match l0 with *)
+(*             | nil => fun _ : bool => nil *)
+(*             | cons b l1 => *)
+(*                 fun z : bool => *)
+(*                 cons (half_adder_sum b z) (F0 l1 (half_adder_carry b z)) *)
+(*             end) *)
+(*      | cons b l0 => *)
+(*          fun x2 : BoolList => *)
+(*          match x2 with *)
+(*          | nil => *)
+(*              fun y z : bool => *)
+(*              cons (half_adder_sum y z) (F l0 nil (half_adder_carry y z)) *)
+(*          | cons b0 l1 => *)
+(*              fun y z : bool => *)
+(*              cons (full_adder_sum y b0 z) *)
+(*                (F l0 l1 (full_adder_carry y b0 z)) *)
+(*          end b *)
+(*      end). *)
 
 
 Lemma BV_full_adder_sum_eq1 :
- forall b : bool, BV_full_adder_sum nil nil b = nilbv.
+ forall b : bool, BV_full_adder_sum nil nil b = nil.
 Proof.
  auto.
 Qed.
@@ -229,7 +241,7 @@ Qed.
 Lemma BV_full_adder_sum_eq2 :
  forall (vh : bool) (vt : BoolList) (b : bool),
  BV_full_adder_sum nil (vh :: vt) b =
- consbv (half_adder_sum vh b)
+ cons (half_adder_sum vh b)
    (BV_full_adder_sum nil vt (half_adder_carry vh b)).
 Proof.
  auto.
@@ -238,7 +250,7 @@ Qed.
 Lemma BV_full_adder_sum_eq3 :
  forall (vh : bool) (vt : BoolList) (b : bool),
  BV_full_adder_sum (vh :: vt) nil b =
- consbv (half_adder_sum vh b)
+ cons (half_adder_sum vh b)
    (BV_full_adder_sum vt nil (half_adder_carry vh b)).
 Proof.
  auto.
@@ -247,14 +259,30 @@ Qed.
 Lemma BV_full_adder_sum_eq4 :
  forall (vh : bool) (vt : BoolList) (wh : bool) (wt : BoolList) (b : bool),
  BV_full_adder_sum (vh :: vt) (wh :: wt) b =
- consbv (full_adder_sum vh wh b)
+ cons (full_adder_sum vh wh b)
    (BV_full_adder_sum vt wt (full_adder_carry vh wh b)).
 Proof.
  auto.
 Qed.
 
+Fixpoint BV_full_adder_carry_nil (l0: BoolList) (bb: bool): bool :=
+  match l0 with
+  | nil => bb
+  | cons b l1 => BV_full_adder_carry_nil l1 (half_adder_carry b bb)
+  end.
 
-Definition BV_full_adder_carry :=
+Fixpoint BV_full_adder_carry (l m: BoolList) (bb: bool) :=
+  match l with
+  | nil => BV_full_adder_carry_nil m bb
+  | cons b l0 =>
+    match m with
+    | nil => BV_full_adder_carry l0 nil (half_adder_carry b bb)
+    | cons b0 l1 => BV_full_adder_carry l0 l1 (full_adder_carry b b0 bb)
+    end
+  end.
+
+
+(* Definition BV_full_adder_carry :=
   (fix F (l : BoolList) : BoolList -> bool -> bool :=
      match l with
      | nil =>
@@ -269,7 +297,7 @@ Definition BV_full_adder_carry :=
          | nil => fun y z : bool => F l0 nil (half_adder_carry y z)
          | cons b0 l1 => fun y z : bool => F l0 l1 (full_adder_carry y b0 z)
          end b
-     end).
+     end). *)
 
 
 Lemma BV_full_adder_carry_eq1 :
@@ -307,29 +335,28 @@ Proof.
 Qed.
 
 
-Definition BV_full_adder (v w : BV) (cin : bool) : BV :=
-  appbv (BV_full_adder_sum v w cin)
-    (consbv (BV_full_adder_carry v w cin) nilbv).
+Definition BV_full_adder (v w : BoolList) (cin : bool) : BoolList :=
+  app (BV_full_adder_sum v w cin)
+    (cons (BV_full_adder_carry v w cin) nil).
 
 (****************************************************************)
 
 Lemma BV_full_adder_sum_v_nil_false :
- forall v : BV, BV_full_adder_sum v nilbv false = v.
-unfold nilbv in |- *. simple induction v. trivial. intros.
+ forall v : BoolList, BV_full_adder_sum v nil false = v.
+simple induction v. trivial. intros.
 rewrite BV_full_adder_sum_eq3. rewrite half_adder_carry_false.
 rewrite half_adder_sum_false. rewrite H; auto.
 Qed.
 
 Lemma BV_full_adder_carry_v_nil_false :
- forall v : BV, BV_full_adder_carry v nilbv false = false.
-unfold nilbv in |- *.
+ forall v : BoolList, BV_full_adder_carry v nil false = false.
 simple induction v. trivial. intros.
 rewrite BV_full_adder_carry_eq3. rewrite half_adder_carry_false.
 trivial.
 Qed.
 
 Lemma BV_full_adder_sum_sym :
- forall (v w : BV) (cin : bool),
+ forall (v w : BoolList) (cin : bool),
  BV_full_adder_sum v w cin = BV_full_adder_sum w v cin.
 simple induction v. simple induction w. auto. intros.
 rewrite BV_full_adder_sum_eq2. rewrite BV_full_adder_sum_eq3.
@@ -340,9 +367,9 @@ do 2 rewrite full_adder_carry_sym1. do 2 rewrite full_adder_sum_sym1. auto.
 Qed.
 
 Lemma length_BV_full_adder_sum :
- forall (v w : BV) (cin : bool),
- lengthbv v = lengthbv w -> lengthbv (BV_full_adder_sum v w cin) = lengthbv v.
-unfold lengthbv in |- *. simple induction v. simple induction w. intros. case cin. simpl in |- *. trivial.
+ forall (v w : BoolList) (cin : bool),
+ length v = length w -> length (BV_full_adder_sum v w cin) = length v.
+unfold length in |- *. simple induction v. simple induction w. intros. case cin. simpl in |- *. trivial.
 simpl in |- *. trivial.
 intros. absurd (length (nil:BoolList) = length (b :: b0)).
 simpl in |- *. discriminate. exact H0. simple induction w. simpl in |- *. intros. discriminate H0.
@@ -350,7 +377,7 @@ intros. simpl in |- *. rewrite H. trivial. generalize H1. simpl in |- *. auto.
 Qed.
 
 Lemma BV_full_adder_carry_sym :
- forall (v w : BV) (cin : bool),
+ forall (v w : BoolList) (cin : bool),
  BV_full_adder_carry v w cin = BV_full_adder_carry w v cin.
 simple induction v. simple induction w. auto. intros.
 rewrite BV_full_adder_carry_eq2. rewrite BV_full_adder_carry_eq3.
@@ -361,14 +388,14 @@ rewrite H. rewrite full_adder_carry_sym1. auto.
 Qed.
 
 Lemma BV_full_adder_sym :
- forall (v w : BV) (cin : bool),
+ forall (v w : BoolList) (cin : bool),
  BV_full_adder v w cin = BV_full_adder w v cin.
 unfold BV_full_adder in |- *.
 intros.
 rewrite BV_full_adder_sum_sym. rewrite BV_full_adder_carry_sym. auto.
 Qed.
 
-Fixpoint BV_to_nat (v : BV) : nat :=
+Fixpoint BV_to_nat (v : BoolList) : nat :=
   match v return nat with
   | nil => 0
   | cons b w => bool_to_nat b + (BV_to_nat w + BV_to_nat w)
@@ -381,10 +408,10 @@ Fixpoint power2 (n : nat) : nat :=
   end.
 
 Lemma BV_to_nat_app :
- forall (l n : BV) (ll : nat),
+ forall (l n : BoolList) (ll : nat),
  (******************)
- length l = ll -> BV_to_nat (appbv l n) = BV_to_nat l + power2 ll * BV_to_nat n.
-unfold BV, appbv in |- *. simple induction l. intros. inversion H. simpl in |- *. auto.
+ length l = ll -> BV_to_nat (app l n) = BV_to_nat l + power2 ll * BV_to_nat n.
+simple induction l. intros. inversion H. simpl in |- *. auto.
 intros. simpl.
 destruct ll.
 inversion H0.
@@ -405,18 +432,18 @@ reflexivity.
 Qed.
 
 Lemma BV_to_nat_app2 :
- forall l n : BV,
+ forall l n : BoolList,
  (*******************)
- BV_to_nat (appbv l n) = BV_to_nat l + power2 (lengthbv l) * BV_to_nat n.
+ BV_to_nat (app l n) = BV_to_nat l + power2 (length l) * BV_to_nat n.
 intros. apply BV_to_nat_app. auto.
 Qed.
 
 Lemma BV_full_adder_nil_true_ok :
- forall v : BV, BV_to_nat (BV_full_adder v nilbv true) = S (BV_to_nat v).
-unfold nilbv in |- *. simple induction v; auto with arith. unfold BV_full_adder in |- *. intros.
-rewrite BV_full_adder_sum_eq3. rewrite BV_full_adder_carry_eq3. unfold appbv.
+ forall v : BoolList, BV_to_nat (BV_full_adder v nil true) = S (BV_to_nat v).
+simple induction v; auto with arith. unfold BV_full_adder in |- *. intros.
+rewrite BV_full_adder_sum_eq3. rewrite BV_full_adder_carry_eq3.
 rewrite app_eq2. rewrite half_adder_carry_true.
-simpl in |- *. elim b. unfold appbv in H. rewrite H. simpl in |- *. auto with arith.
+simpl in |- *. elim b. rewrite H. simpl in |- *. auto with arith.
 rewrite BV_full_adder_sum_v_nil_false.
 rewrite BV_full_adder_carry_v_nil_false. rewrite BV_to_nat_app2.
 simpl in |- *. elim mult_n_O. elim plus_n_O. trivial with arith.
@@ -424,8 +451,8 @@ Qed.
 
 
 Lemma BV_full_adder_nil_ok :
- forall (v : BV) (cin : bool),
- BV_to_nat (BV_full_adder v nilbv cin) = BV_to_nat v + bool_to_nat cin.
+ forall (v : BoolList) (cin : bool),
+ BV_to_nat (BV_full_adder v nil cin) = BV_to_nat v + bool_to_nat cin.
 
 simple induction v. simple induction cin; auto with arith.
 simple induction cin. rewrite BV_full_adder_nil_true_ok. simpl in |- *. rewrite Nat.add_1_r. reflexivity.
@@ -438,7 +465,7 @@ Qed.
 
 Require Import Lia.
 Theorem BV_full_adder_ok :
- forall (v w : BV) (cin : bool),
+ forall (v w : BoolList) (cin : bool),
  BV_to_nat (BV_full_adder v w cin) =
  BV_to_nat v + BV_to_nat w + bool_to_nat cin.
 simple induction v.
