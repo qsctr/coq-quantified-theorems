@@ -2,7 +2,7 @@ Require Import Nat Arith.
 
 Inductive Nat : Type := succ : Nat -> Nat |  zero : Nat.
 
-Inductive Lst : Type := cons : Nat -> Lst -> Lst |  nil : Lst.
+Inductive Lst : Type := nil : Lst | cons : Nat -> Lst -> Lst.
 
 Inductive Tree : Type := node : Nat -> Tree -> Tree -> Tree |  leaf : Tree.
 
@@ -36,5 +36,11 @@ Fixpoint sort (sort_arg0 : Lst) : Lst
 
 Theorem theorem0 : forall (x : Nat) (y : Lst), eq (len (insort x y)) (succ (len y)).
 Proof.
-Admitted.
+  intros.
+  induction y.
+  - reflexivity.
+  - simpl. destruct (less x n) eqn:?.
+    + reflexivity.
+    + simpl. rewrite IHy. reflexivity.
+Qed.
 

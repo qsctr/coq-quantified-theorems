@@ -1,65 +1,134 @@
-Require Import Nat Arith.
+Require Import Bool Arith.
 
-Inductive Lst : Type := cons : nat -> Lst -> Lst |  nil : Lst.
+Inductive lst : Type :=
+| Nil : lst
+| Cons : nat -> lst -> lst.
 
-Inductive Heap : Type := hleaf : Heap |  heap : nat -> nat -> Heap -> Heap -> Heap.
+Inductive heap : Type :=
+| Hleaf : heap
+| Heap : nat -> nat -> heap -> heap -> heap.
 
-Fixpoint rightHeight (rightHeight_arg0 : Heap) : nat
-           := match rightHeight_arg0 with
-              | hleaf => 0
-              | heap k v l r => plus 1 (rightHeight r)
-              end.
+Fixpoint right_height (h : heap) : nat :=
+  match h with
+  | Hleaf => 0
+  | Heap k v l r => right_height r + 1
+  end.
 
-Fixpoint rank (rank_arg0 : Heap) : nat
-           := match rank_arg0 with
-              | hleaf => 0
-              | heap k v l r => k
-              end.
+Definition rank (h : heap) : nat :=
+  match h with
+  | Hleaf => 0
+  | Heap k v l r => k
+  end.
 
-Fixpoint hasLeftistProperty (hasLeftistProperty_arg0 : Heap) : bool
-           := match hasLeftistProperty_arg0 with
-              | hleaf => true
-              | heap k v l r =>
-                  andb (hasLeftistProperty l) (andb (hasLeftistProperty r) (andb (leb (rightHeight r) (rightHeight l)) (eqb k (plus 1 (rightHeight r)))))
-              end.
+Fixpoint has_leftist_property (h : heap) : bool :=
+  match h with
+  | Hleaf => true
+  | Heap k v l r =>
+    has_leftist_property l
+    && has_leftist_property r
+    && (right_height r <=? right_height l)
+    && (k =? right_height r + 1)
+  end.
 
-Fixpoint hsize (hsize_arg0 : Heap) : nat
-           := match hsize_arg0 with
-              | hleaf => 0
-              | heap k v l r => plus 1 (plus (hsize l) (hsize r))
-              end.
+Fixpoint hsize (h : heap) : nat :=
+  match h with
+  | Hleaf => 0
+  | Heap k v l r => hsize l + hsize r + 1
+  end.
 
-Fixpoint mergea (mergea_arg0 : nat) (mergea_arg1 : Heap) (mergea_arg2 : Heap) : Heap
-           := match mergea_arg0, mergea_arg1, mergea_arg2 with
-              | v, l, r => if leb (rank r) (rank l) then heap (plus 1 (rank r)) v l r else heap (plus 1 (rank l)) v r l
-              end.
+Definition mergea (v : nat) (l r : heap) : heap :=
+  if rank r <=? rank l
+    then Heap (rank r + 1) v l r
+    else Heap (rank l + 1) v r l.
 
-Fixpoint merge (merge_arg0 : Heap) (merge_arg1 : Heap) : Heap
-           := match merge_arg0, merge_arg1 with
-              | h, hleaf => h
-              | hleaf, h => h
-              | heap k1 v1 l1 r1, heap k2 v2 l2 r2 =>
-                  if ltb v2 v1
-                  then mergea v1 l1 (merge r1 (heap k2 v2 l2 r2))
-                  else mergea v2 l2 (merge (heap k1 v1 l1 r1) r2)
-              end.
+Fixpoint merge (h1 : heap) : heap -> heap :=
+  fix merge_aux (h2 : heap) : heap :=
+  match h1, h2 with
+  | h, Hleaf => h
+  | Hleaf, h => h
+  | Heap k1 v1 l1 r1, Heap k2 v2 l2 r2 =>
+    if v2 <? v1
+      then mergea v1 l1 (merge r1 (Heap k2 v2 l2 r2))
+      else mergea v2 l2 (merge_aux r2)
+  end.
 
-Fixpoint hinsert (hinsert_arg0 : Heap) (hinsert_arg1 : nat) : Heap
-           := match hinsert_arg0, hinsert_arg1 with
-              | h, n => merge (heap 1 n hleaf hleaf) h
-              end.
+Definition hinsert (h : heap) (n : nat) : heap :=
+  merge (Heap 1 n Hleaf Hleaf) h.
 
-Fixpoint hinsert_all (hinsert_all_arg0 : Lst) (hinsert_all_arg1 : Heap) : Heap
+Fixpoint hinsert_all (hinsert_all_arg0 : lst) (hinsert_all_arg1 : heap) : heap
            := match hinsert_all_arg0, hinsert_all_arg1 with
-              | nil, h => h
-              | cons n l, h => hinsert (hinsert_all l h) n
+              | Nil, h => h
+              | Cons n l, h => hinsert (hinsert_all l h) n
               end.
 
-Theorem theorem0 : forall (x : Heap) (n : nat), eq (hasLeftistProperty x) true -> eq (hasLeftistProperty (hinsert x n)) true.
+Lemma rank_right_height : forall h : heap,
+  has_leftist_property h = true -> rank h = right_height h.
 Proof.
-Admitted.
+  intros.
+  induction h.
+  - auto.
+  - simpl. simpl in H. apply andb_true_iff in H. destruct H. apply Nat.eqb_eq in H0. assumption.
+Qed.
 
-Theorem theorem1 : forall (l : Lst) (h : Heap), eq (hasLeftistProperty h) true -> eq (hasLeftistProperty (hinsert_all l h)) true.
+Lemma leftist_mergea : forall (v : nat) (l r : heap),
+  has_leftist_property l && has_leftist_property r = true
+    -> has_leftist_property (mergea v l r) = true.
 Proof.
-Admitted.
+  intros.
+  unfold mergea.
+  apply andb_true_iff in H. destruct H.
+  destruct (Nat.leb_spec (rank r) (rank l)).
+  - rewrite (rank_right_height r H0) in H1.
+    rewrite (rank_right_height l H) in H1.
+    simpl. rewrite (rank_right_height r H0).
+    apply andb_true_iff. split.
+    + apply andb_true_iff. split.
+      * rewrite H. rewrite H0. reflexivity.
+      * apply Nat.leb_le. assumption.
+    + apply Nat.eqb_eq. reflexivity.
+  - rewrite (rank_right_height r H0) in H1.
+    rewrite (rank_right_height l H) in H1.
+    simpl. rewrite (rank_right_height l H).
+    apply le_Sn_le in H1.
+    apply andb_true_iff. split.
+    + apply andb_true_iff. split.
+      * rewrite H. rewrite H0. reflexivity.
+      * apply Nat.leb_le. assumption.
+    + apply Nat.eqb_eq. reflexivity.
+Qed.
 
+Lemma leftist_merge : forall h1 h2 : heap,
+  has_leftist_property h1 && has_leftist_property h2 = true
+    -> has_leftist_property (merge h1 h2) = true.
+Proof.
+  intro h1.
+  induction h1.
+  - intros. destruct h2.
+    + reflexivity.
+    + simpl. simpl in H. assumption.
+  - intros. induction h2.
+    + simpl. apply andb_true_iff in H. destruct H. simpl in H. assumption.
+    + apply andb_true_iff in H. destruct H. simpl in H. apply andb_true_iff in H. destruct H. apply andb_true_iff in H. destruct H. apply andb_true_iff in H. destruct H. simpl. destruct (n2 <? n0).
+      * apply leftist_mergea. apply andb_true_iff. split.
+        -- assumption.
+        -- apply IHh1_2. rewrite H3. rewrite H0. reflexivity.
+      * simpl in H0. apply andb_true_iff in H0. destruct H0. apply andb_true_iff in H0. destruct H0. apply andb_true_iff in H0. destruct H0. simpl in IHh2_2. apply leftist_mergea. apply andb_true_iff. split.
+        -- assumption.
+        -- apply IHh2_2. rewrite H. rewrite H3. rewrite H2. rewrite H1. rewrite H6. reflexivity.
+Qed.
+
+Theorem leftist_hinsert : forall (x : heap) (n : nat),
+  has_leftist_property x = true -> has_leftist_property (hinsert x n) = true.
+Proof.
+  intros. unfold hinsert. apply leftist_merge. apply andb_true_iff. split.
+  - unfold has_leftist_property. reflexivity.
+  - assumption.
+Qed.
+
+Theorem theorem1 : forall (l : lst) (h : heap), eq (has_leftist_property h) true -> eq (has_leftist_property (hinsert_all l h)) true.
+Proof.
+  intros.
+  induction l.
+  - simpl. assumption.
+  - simpl. apply leftist_hinsert. assumption.
+Qed.

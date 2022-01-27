@@ -1,8 +1,10 @@
-Require Import Nat Arith.
+Require Import Nat Arith Bool.
 
-Inductive Nat : Type := succ : Nat -> Nat |  zero : Nat.
+Inductive Nat : Type := zero : Nat | succ : Nat -> Nat.
 
-Inductive Lst : Type := cons : Nat -> Lst -> Lst |  nil : Lst.
+Scheme Equality for Nat.
+
+Inductive Lst : Type := nil : Lst | cons : Nat -> Lst -> Lst.
 
 Inductive Tree : Type := node : Nat -> Tree -> Tree -> Tree |  leaf : Tree.
 
@@ -19,7 +21,7 @@ Fixpoint less (less_arg0 : Nat) (less_arg1 : Nat) : bool
 Fixpoint mem (mem_arg0 : Nat) (mem_arg1 : Lst) : bool
            := match mem_arg0, mem_arg1 with
               | x, nil => false
-              | x, cons y z => orb (eqb x y) (mem x z)
+              | x, cons y z => orb (Nat_beq x y) (mem x z)
               end.
 
 Fixpoint insort (insort_arg0 : Nat) (insort_arg1 : Lst) : Lst
@@ -34,7 +36,30 @@ Fixpoint sort (sort_arg0 : Lst) : Lst
               | cons x y => insort x (sort y)
               end.
 
+Lemma Nat_beq_eq : forall (x y : Nat), Nat_beq x y = true -> x = y.
+Proof.
+  intros.
+  generalize dependent y.
+  induction x.
+  - intros. destruct y.
+    + reflexivity.
+    + discriminate.
+  - intros. destruct y.
+    + discriminate.
+    + simpl in H. apply IHx in H. rewrite H. reflexivity.
+Qed.
+
 Theorem theorem0 : forall (x : Nat) (y : Nat) (z : Lst), not (eq x y) -> eq (mem x (insort y z)) true -> eq (mem x z) true.
 Proof.
-Admitted.
+  intros.
+  induction z.
+  - simpl in H0. rewrite orb_false_r in H0. apply Nat_beq_eq in H0. contradiction.
+  - simpl in H0. simpl. destruct (less y n) eqn:?.
+    + simpl in H0. apply orb_true_iff in H0. destruct H0.
+      * apply Nat_beq_eq in H0. contradiction.
+      * assumption.
+    + simpl in H0. apply orb_true_iff in H0. destruct H0.
+      * rewrite H0. reflexivity.
+      * apply IHz in H0. rewrite H0. apply orb_true_r.
+Qed.
 

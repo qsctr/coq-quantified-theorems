@@ -1,6 +1,6 @@
 Require Import Nat Arith.
 
-Inductive Nat : Type := succ : Nat -> Nat |  zero : Nat.
+Inductive Nat : Type := zero : Nat | succ : Nat -> Nat.
 
 Inductive Lst : Type := cons : Nat -> Lst -> Lst |  nil : Lst.
 
@@ -17,5 +17,9 @@ Fixpoint plus (plus_arg0 : Nat) (plus_arg1 : Nat) : Nat
 
 Theorem theorem0 : forall (x : Nat) (y : Nat), eq (plus x (succ (succ y))) (succ (succ (plus x y))).
 Proof.
-Admitted.
+  intros.
+  induction x.
+  - reflexivity.
+  - simpl. rewrite IHx. reflexivity.
+Qed.
 

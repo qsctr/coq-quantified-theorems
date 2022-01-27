@@ -2,7 +2,7 @@ Require Import Nat Arith.
 
 Inductive Nat : Type := succ : Nat -> Nat |  zero : Nat.
 
-Inductive Lst : Type := cons : Nat -> Lst -> Lst |  nil : Lst.
+Inductive Lst : Type := nil : Lst | cons : Nat -> Lst -> Lst.
 
 Inductive Tree : Type := node : Nat -> Tree -> Tree -> Tree |  leaf : Tree.
 
@@ -17,5 +17,9 @@ Fixpoint append (append_arg0 : Lst) (append_arg1 : Lst) : Lst
 
 Theorem theorem0 : forall (x : Lst) (y : Lst) (z : Lst), eq (append (append x y) z) (append x (append y z)).
 Proof.
-Admitted.
+  intros.
+  induction x.
+  - reflexivity.
+  - simpl. rewrite IHx. reflexivity.
+Qed.
 

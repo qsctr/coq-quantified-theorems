@@ -2,7 +2,7 @@ Require Import Nat Arith.
 
 Inductive Nat : Type := succ : Nat -> Nat |  zero : Nat.
 
-Inductive Lst : Type := cons : Nat -> Lst -> Lst |  nil : Lst.
+Inductive Lst : Type := nil : Lst | cons : Nat -> Lst -> Lst.
 
 Inductive Tree : Type := node : Nat -> Tree -> Tree -> Tree |  leaf : Tree.
 
@@ -27,7 +27,26 @@ Fixpoint qreva (qreva_arg0 : Lst) (qreva_arg1 : Lst) : Lst
               | cons z x, y => qreva x (cons z y)
               end.
 
+Lemma append_nil : forall (x : Lst), append x nil = x.
+Proof.
+  intros.
+  induction x.
+  - reflexivity.
+  - simpl. rewrite IHx. reflexivity.
+Qed.
+
+Lemma append_assoc : forall (x y z : Lst), append (append x y) z = append x (append y z).
+Proof.
+  intros.
+  induction x.
+  - reflexivity.
+  - simpl. rewrite IHx. reflexivity.
+Qed.
+
 Theorem theorem0 : forall (x : Lst) (y : Lst), eq (rev (qreva x y)) (append (rev y) x).
 Proof.
-Admitted.
+  induction x.
+  - intros. simpl. rewrite append_nil. reflexivity.
+  - intros. simpl. rewrite IHx. simpl. rewrite append_assoc. simpl. reflexivity.
+Qed.
 
