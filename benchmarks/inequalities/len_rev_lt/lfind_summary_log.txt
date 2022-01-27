@@ -1,0 +1,18 @@
+
+### SUMMARY ###
+Stuck Proof State: Lemma lfind_state  (n:nat) (x:lst) (IHx:lt (len (rev x)) (S (len x))):lt (len (append (rev x) (Cons n Nil))) (S (S (len x))).
+Admitted.
+# Generalizations : 31
+#Generalizations useful in proving original goal and provable by proverbot: 0
+Lemmas
+
+#Generalizations useful in proving original goal: 0
+Lemmas
+
+#Generalizations not disprovable : 0
+#Synthesized Lemmas useful in proving original goal and provable by proverbot: 0
+Lemmas
+#Synthesized Lemmas useful in proving original goal: 0
+Lemmas
+#Synthesized Lemmas not disprovable : 31
+

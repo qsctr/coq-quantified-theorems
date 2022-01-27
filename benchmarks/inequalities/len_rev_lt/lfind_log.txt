@@ -1,0 +1,933 @@
+
+### Generalization Stat ###
+Generalized Conjecture : conj32: forall  (n:nat) (x:lst) , (lt (len (append (rev x) (Cons n Nil))) (S (S (len x))))
+is_valid : true
+is_prover_provable (be proven by proverbot): false
+is_provable (can help prove original goal): false
+Synthesis Stats : 
+  
+
+
+### Generalization Stat ###
+Generalized Conjecture : conj31: forall  (n:nat) (x:lst)(lf1:nat) , (lt (len (append (rev x) (Cons n Nil))) (S (S lf1)))
+is_valid : false
+is_prover_provable (be proven by proverbot): false
+is_provable (can help prove original goal): false
+Synthesis Stats : 
+ 		
+### Synthesis Stats ###
+		 Synthesis Term : len (append (rev x) (Cons n Nil))
+		 # Myth Enumerated Terms : 15
+		 # Valid Synthesized Lemmas : 1
+		 Valid Lemmas
+ 			 Myth Term : ( S lf1)
+			 Lemma : conj31synthconj15 : forall  (lv0 : nat), (lt (S lv0) (S (S lv0)))
+
+		 # Lemmas useful to prove original goal : 0
+		 Lemmas that can prove the original goal 
+ 
+------------------------------------------------------------------------
+		
+### Synthesis Stats ###
+		 Synthesis Term : S (S lf1)
+		 # Myth Enumerated Terms : 15
+		 # Valid Synthesized Lemmas : 7
+		 Valid Lemmas
+ 			 Myth Term : ( len (Cons (S n) (Cons n x)))
+			 Lemma : conj31synthconj1 : forall  (lv0 : nat) (lv1 : lst), (lt (len (append (rev lv1) (Cons lv0 Nil))) (len (Cons (S lv0) (Cons lv0 lv1))))
+			 Myth Term : ( len (Cons n (Cons (S n) x)))
+			 Lemma : conj31synthconj5 : forall  (lv0 : nat) (lv1 : lst), (lt (len (append (rev lv1) (Cons lv0 Nil))) (len (Cons lv0 (Cons (S lv0) lv1))))
+			 Myth Term : ( S (S (len (rev x))))
+			 Lemma : conj31synthconj6 : forall  (lv0 : nat) (lv1 : lst), (lt (len (append (rev lv1) (Cons lv0 Nil))) (S (S (len (rev lv1)))))
+			 Myth Term : ( S (len (Cons (S n) x)))
+			 Lemma : conj31synthconj8 : forall  (lv0 : nat) (lv1 : lst), (lt (len (append (rev lv1) (Cons lv0 Nil))) (S (len (Cons (S lv0) lv1))))
+			 Myth Term : ( len (Cons n (Cons n x)))
+			 Lemma : conj31synthconj12 : forall  (lv0 : nat) (lv1 : lst), (lt (len (append (rev lv1) (Cons lv0 Nil))) (len (Cons lv0 (Cons lv0 lv1))))
+			 Myth Term : ( S (len (Cons n x)))
+			 Lemma : conj31synthconj14 : forall  (lv0 : nat) (lv1 : lst), (lt (len (append (rev lv1) (Cons lv0 Nil))) (S (len (Cons lv0 lv1))))
+			 Myth Term : ( S (S (len x)))
+			 Lemma : conj31synthconj15 : forall  (lv0 : nat) (lv1 : lst), (lt (len (append (rev lv1) (Cons lv0 Nil))) (S (S (len lv1))))
+
+		 # Lemmas useful to prove original goal : 0
+		 Lemmas that can prove the original goal 
+ 
+------------------------------------------------------------------------
+ 
+
+
+### Generalization Stat ###
+Generalized Conjecture : conj30: forall  (n:nat) (x:lst)(lf1:nat) , (lt (len (append (rev x) (Cons n Nil))) (S lf1))
+is_valid : false
+is_prover_provable (be proven by proverbot): false
+is_provable (can help prove original goal): false
+Synthesis Stats : 
+ 		
+### Synthesis Stats ###
+		 Synthesis Term : len (append (rev x) (Cons n Nil))
+		 # Myth Enumerated Terms : 15
+		 # Valid Synthesized Lemmas : 1
+		 Valid Lemmas
+ 			 Myth Term : ( lf1)
+			 Lemma : conj30synthconj15 : forall  (lv0 : nat), (lt (lv0) (S lv0))
+
+		 # Lemmas useful to prove original goal : 0
+		 Lemmas that can prove the original goal 
+ 
+------------------------------------------------------------------------
+		
+### Synthesis Stats ###
+		 Synthesis Term : S lf1
+		 # Myth Enumerated Terms : 15
+		 # Valid Synthesized Lemmas : 0
+		 Valid Lemmas
+ 
+		 # Lemmas useful to prove original goal : 0
+		 Lemmas that can prove the original goal 
+ 
+------------------------------------------------------------------------
+ 
+
+
+### Generalization Stat ###
+Generalized Conjecture : conj29: forall  (n:nat) (x:lst)(lf1:nat) , (lt (len (append (rev x) (Cons n Nil))) lf1)
+is_valid : false
+is_prover_provable (be proven by proverbot): false
+is_provable (can help prove original goal): false
+Synthesis Stats : 
+ 		
+### Synthesis Stats ###
+		 Synthesis Term : len (append (rev x) (Cons n Nil))
+		 # Myth Enumerated Terms : 0
+		 # Valid Synthesized Lemmas : 0
+		 Valid Lemmas
+ 
+		 # Lemmas useful to prove original goal : 0
+		 Lemmas that can prove the original goal 
+ 
+------------------------------------------------------------------------
+ 
+
+
+### Generalization Stat ###
+Generalized Conjecture : conj28: forall  (x:lst) (n:nat)(lf1:lst) , (lt (len (append lf1 (Cons n Nil))) (S (S (len x))))
+is_valid : false
+is_prover_provable (be proven by proverbot): false
+is_provable (can help prove original goal): false
+Synthesis Stats : 
+ 		
+### Synthesis Stats ###
+		 Synthesis Term : len (append lf1 (Cons n Nil))
+		 # Myth Enumerated Terms : 15
+		 # Valid Synthesized Lemmas : 4
+		 Valid Lemmas
+ 			 Myth Term : ( len (Cons (S (len x)) x))
+			 Lemma : conj28synthconj5 : forall  (lv0 : lst), (lt (len (Cons (S (len lv0)) lv0)) (S (S (len lv0))))
+			 Myth Term : ( len (Cons (len x) x))
+			 Lemma : conj28synthconj10 : forall  (lv0 : lst), (lt (len (Cons (len lv0) lv0)) (S (S (len lv0))))
+			 Myth Term : ( S (len (rev x)))
+			 Lemma : conj28synthconj12 : forall  (lv0 : lst), (lt (S (len (rev lv0))) (S (S (len lv0))))
+			 Myth Term : ( S (len x))
+			 Lemma : conj28synthconj15 : forall  (lv0 : lst), (lt (S (len lv0)) (S (S (len lv0))))
+
+		 # Lemmas useful to prove original goal : 0
+		 Lemmas that can prove the original goal 
+ 
+------------------------------------------------------------------------
+		
+### Synthesis Stats ###
+		 Synthesis Term : S (S (len x))
+		 # Myth Enumerated Terms : 15
+		 # Valid Synthesized Lemmas : 7
+		 Valid Lemmas
+ 			 Myth Term : ( len (Cons (S n) (Cons n lf1)))
+			 Lemma : conj28synthconj1 : forall  (lv0 : nat) (lv1 : lst), (lt (len (append lv1 (Cons lv0 Nil))) (len (Cons (S lv0) (Cons lv0 lv1))))
+			 Myth Term : ( len (Cons n (Cons (S n) lf1)))
+			 Lemma : conj28synthconj5 : forall  (lv0 : nat) (lv1 : lst), (lt (len (append lv1 (Cons lv0 Nil))) (len (Cons lv0 (Cons (S lv0) lv1))))
+			 Myth Term : ( S (S (len (rev lf1))))
+			 Lemma : conj28synthconj6 : forall  (lv0 : nat) (lv1 : lst), (lt (len (append lv1 (Cons lv0 Nil))) (S (S (len (rev lv1)))))
+			 Myth Term : ( S (len (Cons (S n) lf1)))
+			 Lemma : conj28synthconj8 : forall  (lv0 : nat) (lv1 : lst), (lt (len (append lv1 (Cons lv0 Nil))) (S (len (Cons (S lv0) lv1))))
+			 Myth Term : ( len (Cons n (Cons n lf1)))
+			 Lemma : conj28synthconj12 : forall  (lv0 : nat) (lv1 : lst), (lt (len (append lv1 (Cons lv0 Nil))) (len (Cons lv0 (Cons lv0 lv1))))
+			 Myth Term : ( S (len (Cons n lf1)))
+			 Lemma : conj28synthconj14 : forall  (lv0 : nat) (lv1 : lst), (lt (len (append lv1 (Cons lv0 Nil))) (S (len (Cons lv0 lv1))))
+			 Myth Term : ( S (S (len lf1)))
+			 Lemma : conj28synthconj15 : forall  (lv0 : nat) (lv1 : lst), (lt (len (append lv1 (Cons lv0 Nil))) (S (S (len lv1))))
+
+		 # Lemmas useful to prove original goal : 0
+		 Lemmas that can prove the original goal 
+ 
+------------------------------------------------------------------------
+ 
+
+
+### Generalization Stat ###
+Generalized Conjecture : conj27: forall  (n:nat)(lf2:nat)(lf1:lst) , (lt (len (append lf1 (Cons n Nil))) (S (S lf2)))
+is_valid : false
+is_prover_provable (be proven by proverbot): false
+is_provable (can help prove original goal): false
+Synthesis Stats : 
+ 		
+### Synthesis Stats ###
+		 Synthesis Term : len (append lf1 (Cons n Nil))
+		 # Myth Enumerated Terms : 15
+		 # Valid Synthesized Lemmas : 0
+		 Valid Lemmas
+ 
+		 # Lemmas useful to prove original goal : 0
+		 Lemmas that can prove the original goal 
+ 
+------------------------------------------------------------------------
+		
+### Synthesis Stats ###
+		 Synthesis Term : S (S lf2)
+		 # Myth Enumerated Terms : 15
+		 # Valid Synthesized Lemmas : 0
+		 Valid Lemmas
+ 
+		 # Lemmas useful to prove original goal : 0
+		 Lemmas that can prove the original goal 
+ 
+------------------------------------------------------------------------
+ 
+
+
+### Generalization Stat ###
+Generalized Conjecture : conj26: forall  (n:nat)(lf2:lst)(lf1:nat) , (lt (len (append lf2 (Cons n Nil))) (S lf1))
+is_valid : false
+is_prover_provable (be proven by proverbot): false
+is_provable (can help prove original goal): false
+Synthesis Stats : 
+ 		
+### Synthesis Stats ###
+		 Synthesis Term : len (append lf2 (Cons n Nil))
+		 # Myth Enumerated Terms : 15
+		 # Valid Synthesized Lemmas : 0
+		 Valid Lemmas
+ 
+		 # Lemmas useful to prove original goal : 0
+		 Lemmas that can prove the original goal 
+ 
+------------------------------------------------------------------------
+		
+### Synthesis Stats ###
+		 Synthesis Term : S lf1
+		 # Myth Enumerated Terms : 15
+		 # Valid Synthesized Lemmas : 0
+		 Valid Lemmas
+ 
+		 # Lemmas useful to prove original goal : 0
+		 Lemmas that can prove the original goal 
+ 
+------------------------------------------------------------------------
+ 
+
+
+### Generalization Stat ###
+Generalized Conjecture : conj25: forall  (n:nat)(lf2:lst)(lf1:nat) , (lt (len (append lf2 (Cons n Nil))) lf1)
+is_valid : false
+is_prover_provable (be proven by proverbot): false
+is_provable (can help prove original goal): false
+Synthesis Stats : 
+ 		
+### Synthesis Stats ###
+		 Synthesis Term : len (append lf2 (Cons n Nil))
+		 # Myth Enumerated Terms : 0
+		 # Valid Synthesized Lemmas : 0
+		 Valid Lemmas
+ 
+		 # Lemmas useful to prove original goal : 0
+		 Lemmas that can prove the original goal 
+ 
+------------------------------------------------------------------------
+ 
+
+
+### Generalization Stat ###
+Generalized Conjecture : conj24: forall  (n:nat) (x:lst)(lf1:lst) , (lt (len (append (rev x) (Cons n lf1))) (S (S (len x))))
+is_valid : false
+is_prover_provable (be proven by proverbot): false
+is_provable (can help prove original goal): false
+Synthesis Stats : 
+ 		
+### Synthesis Stats ###
+		 Synthesis Term : len (append (rev x) (Cons n lf1))
+		 # Myth Enumerated Terms : 15
+		 # Valid Synthesized Lemmas : 0
+		 Valid Lemmas
+ 
+		 # Lemmas useful to prove original goal : 0
+		 Lemmas that can prove the original goal 
+ 
+------------------------------------------------------------------------
+		
+### Synthesis Stats ###
+		 Synthesis Term : S (S (len x))
+		 # Myth Enumerated Terms : 15
+		 # Valid Synthesized Lemmas : 0
+		 Valid Lemmas
+ 
+		 # Lemmas useful to prove original goal : 0
+		 Lemmas that can prove the original goal 
+ 
+------------------------------------------------------------------------
+ 
+
+
+### Generalization Stat ###
+Generalized Conjecture : conj23: forall  (n:nat) (x:lst)(lf2:lst)(lf1:nat) , (lt (len (append (rev x) (Cons n lf2))) (S (S lf1)))
+is_valid : false
+is_prover_provable (be proven by proverbot): false
+is_provable (can help prove original goal): false
+Synthesis Stats : 
+ 		
+### Synthesis Stats ###
+		 Synthesis Term : len (append (rev x) (Cons n lf2))
+		 # Myth Enumerated Terms : 15
+		 # Valid Synthesized Lemmas : 0
+		 Valid Lemmas
+ 
+		 # Lemmas useful to prove original goal : 0
+		 Lemmas that can prove the original goal 
+ 
+------------------------------------------------------------------------
+		
+### Synthesis Stats ###
+		 Synthesis Term : S (S lf1)
+		 # Myth Enumerated Terms : 15
+		 # Valid Synthesized Lemmas : 0
+		 Valid Lemmas
+ 
+		 # Lemmas useful to prove original goal : 0
+		 Lemmas that can prove the original goal 
+ 
+------------------------------------------------------------------------
+ 
+
+
+### Generalization Stat ###
+Generalized Conjecture : conj22: forall  (n:nat) (x:lst)(lf2:lst)(lf1:nat) , (lt (len (append (rev x) (Cons n lf2))) (S lf1))
+is_valid : false
+is_prover_provable (be proven by proverbot): false
+is_provable (can help prove original goal): false
+Synthesis Stats : 
+ 		
+### Synthesis Stats ###
+		 Synthesis Term : len (append (rev x) (Cons n lf2))
+		 # Myth Enumerated Terms : 15
+		 # Valid Synthesized Lemmas : 0
+		 Valid Lemmas
+ 
+		 # Lemmas useful to prove original goal : 0
+		 Lemmas that can prove the original goal 
+ 
+------------------------------------------------------------------------
+		
+### Synthesis Stats ###
+		 Synthesis Term : S lf1
+		 # Myth Enumerated Terms : 15
+		 # Valid Synthesized Lemmas : 0
+		 Valid Lemmas
+ 
+		 # Lemmas useful to prove original goal : 0
+		 Lemmas that can prove the original goal 
+ 
+------------------------------------------------------------------------
+ 
+
+
+### Generalization Stat ###
+Generalized Conjecture : conj21: forall  (n:nat) (x:lst)(lf2:lst)(lf1:nat) , (lt (len (append (rev x) (Cons n lf2))) lf1)
+is_valid : false
+is_prover_provable (be proven by proverbot): false
+is_provable (can help prove original goal): false
+Synthesis Stats : 
+ 		
+### Synthesis Stats ###
+		 Synthesis Term : len (append (rev x) (Cons n lf2))
+		 # Myth Enumerated Terms : 0
+		 # Valid Synthesized Lemmas : 0
+		 Valid Lemmas
+ 
+		 # Lemmas useful to prove original goal : 0
+		 Lemmas that can prove the original goal 
+ 
+------------------------------------------------------------------------
+ 
+
+
+### Generalization Stat ###
+Generalized Conjecture : conj20: forall  (x:lst)(lf1:lst) , (lt (len (append (rev x) lf1)) (S (S (len x))))
+is_valid : false
+is_prover_provable (be proven by proverbot): false
+is_provable (can help prove original goal): false
+Synthesis Stats : 
+ 		
+### Synthesis Stats ###
+		 Synthesis Term : len (append (rev x) lf1)
+		 # Myth Enumerated Terms : 15
+		 # Valid Synthesized Lemmas : 0
+		 Valid Lemmas
+ 
+		 # Lemmas useful to prove original goal : 0
+		 Lemmas that can prove the original goal 
+ 
+------------------------------------------------------------------------
+		
+### Synthesis Stats ###
+		 Synthesis Term : S (S (len x))
+		 # Myth Enumerated Terms : 15
+		 # Valid Synthesized Lemmas : 2
+		 Valid Lemmas
+ 			 Myth Term : ( S (len (append x lf1)))
+			 Lemma : conj20synthconj1 : forall  (lv0 : lst) (lv1 : lst), (lt (len (append (rev lv1) lv0)) (S (len (append lv1 lv0))))
+			 Myth Term : ( S (len (append lf1 x)))
+			 Lemma : conj20synthconj2 : forall  (lv0 : lst) (lv1 : lst), (lt (len (append (rev lv1) lv0)) (S (len (append lv0 lv1))))
+
+		 # Lemmas useful to prove original goal : 0
+		 Lemmas that can prove the original goal 
+ 
+------------------------------------------------------------------------
+ 
+
+
+### Generalization Stat ###
+Generalized Conjecture : conj19: forall  (x:lst)(lf2:nat)(lf1:lst) , (lt (len (append (rev x) lf1)) (S (S lf2)))
+is_valid : false
+is_prover_provable (be proven by proverbot): false
+is_provable (can help prove original goal): false
+Synthesis Stats : 
+ 		
+### Synthesis Stats ###
+		 Synthesis Term : len (append (rev x) lf1)
+		 # Myth Enumerated Terms : 15
+		 # Valid Synthesized Lemmas : 0
+		 Valid Lemmas
+ 
+		 # Lemmas useful to prove original goal : 0
+		 Lemmas that can prove the original goal 
+ 
+------------------------------------------------------------------------
+		
+### Synthesis Stats ###
+		 Synthesis Term : S (S lf2)
+		 # Myth Enumerated Terms : 15
+		 # Valid Synthesized Lemmas : 0
+		 Valid Lemmas
+ 
+		 # Lemmas useful to prove original goal : 0
+		 Lemmas that can prove the original goal 
+ 
+------------------------------------------------------------------------
+ 
+
+
+### Generalization Stat ###
+Generalized Conjecture : conj18: forall  (x:lst)(lf2:nat)(lf1:lst) , (lt (len (append (rev x) lf1)) (S lf2))
+is_valid : false
+is_prover_provable (be proven by proverbot): false
+is_provable (can help prove original goal): false
+Synthesis Stats : 
+ 		
+### Synthesis Stats ###
+		 Synthesis Term : len (append (rev x) lf1)
+		 # Myth Enumerated Terms : 15
+		 # Valid Synthesized Lemmas : 0
+		 Valid Lemmas
+ 
+		 # Lemmas useful to prove original goal : 0
+		 Lemmas that can prove the original goal 
+ 
+------------------------------------------------------------------------
+		
+### Synthesis Stats ###
+		 Synthesis Term : S lf2
+		 # Myth Enumerated Terms : 15
+		 # Valid Synthesized Lemmas : 0
+		 Valid Lemmas
+ 
+		 # Lemmas useful to prove original goal : 0
+		 Lemmas that can prove the original goal 
+ 
+------------------------------------------------------------------------
+ 
+
+
+### Generalization Stat ###
+Generalized Conjecture : conj17: forall  (x:lst)(lf2:lst)(lf1:nat) , (lt (len (append (rev x) lf2)) lf1)
+is_valid : false
+is_prover_provable (be proven by proverbot): false
+is_provable (can help prove original goal): false
+Synthesis Stats : 
+ 		
+### Synthesis Stats ###
+		 Synthesis Term : len (append (rev x) lf2)
+		 # Myth Enumerated Terms : 0
+		 # Valid Synthesized Lemmas : 0
+		 Valid Lemmas
+ 
+		 # Lemmas useful to prove original goal : 0
+		 Lemmas that can prove the original goal 
+ 
+------------------------------------------------------------------------
+ 
+
+
+### Generalization Stat ###
+Generalized Conjecture : conj16: forall  (x:lst) (n:nat)(lf2:lst)(lf1:lst) , (lt (len (append lf1 (Cons n lf2))) (S (S (len x))))
+is_valid : false
+is_prover_provable (be proven by proverbot): false
+is_provable (can help prove original goal): false
+Synthesis Stats : 
+ 		
+### Synthesis Stats ###
+		 Synthesis Term : len (append lf1 (Cons n lf2))
+		 # Myth Enumerated Terms : 15
+		 # Valid Synthesized Lemmas : 0
+		 Valid Lemmas
+ 
+		 # Lemmas useful to prove original goal : 0
+		 Lemmas that can prove the original goal 
+ 
+------------------------------------------------------------------------
+		
+### Synthesis Stats ###
+		 Synthesis Term : S (S (len x))
+		 # Myth Enumerated Terms : 15
+		 # Valid Synthesized Lemmas : 0
+		 Valid Lemmas
+ 
+		 # Lemmas useful to prove original goal : 0
+		 Lemmas that can prove the original goal 
+ 
+------------------------------------------------------------------------
+ 
+
+
+### Generalization Stat ###
+Generalized Conjecture : conj15: forall  (n:nat)(lf3:lst)(lf2:nat)(lf1:lst) , (lt (len (append lf1 (Cons n lf3))) (S (S lf2)))
+is_valid : false
+is_prover_provable (be proven by proverbot): false
+is_provable (can help prove original goal): false
+Synthesis Stats : 
+ 		
+### Synthesis Stats ###
+		 Synthesis Term : len (append lf1 (Cons n lf3))
+		 # Myth Enumerated Terms : 15
+		 # Valid Synthesized Lemmas : 0
+		 Valid Lemmas
+ 
+		 # Lemmas useful to prove original goal : 0
+		 Lemmas that can prove the original goal 
+ 
+------------------------------------------------------------------------
+		
+### Synthesis Stats ###
+		 Synthesis Term : S (S lf2)
+		 # Myth Enumerated Terms : 15
+		 # Valid Synthesized Lemmas : 0
+		 Valid Lemmas
+ 
+		 # Lemmas useful to prove original goal : 0
+		 Lemmas that can prove the original goal 
+ 
+------------------------------------------------------------------------
+ 
+
+
+### Generalization Stat ###
+Generalized Conjecture : conj14: forall  (n:nat)(lf3:lst)(lf2:lst)(lf1:nat) , (lt (len (append lf2 (Cons n lf3))) (S lf1))
+is_valid : false
+is_prover_provable (be proven by proverbot): false
+is_provable (can help prove original goal): false
+Synthesis Stats : 
+ 		
+### Synthesis Stats ###
+		 Synthesis Term : len (append lf2 (Cons n lf3))
+		 # Myth Enumerated Terms : 15
+		 # Valid Synthesized Lemmas : 0
+		 Valid Lemmas
+ 
+		 # Lemmas useful to prove original goal : 0
+		 Lemmas that can prove the original goal 
+ 
+------------------------------------------------------------------------
+		
+### Synthesis Stats ###
+		 Synthesis Term : S lf1
+		 # Myth Enumerated Terms : 15
+		 # Valid Synthesized Lemmas : 0
+		 Valid Lemmas
+ 
+		 # Lemmas useful to prove original goal : 0
+		 Lemmas that can prove the original goal 
+ 
+------------------------------------------------------------------------
+ 
+
+
+### Generalization Stat ###
+Generalized Conjecture : conj13: forall  (n:nat)(lf3:lst)(lf2:lst)(lf1:nat) , (lt (len (append lf2 (Cons n lf3))) lf1)
+is_valid : false
+is_prover_provable (be proven by proverbot): false
+is_provable (can help prove original goal): false
+Synthesis Stats : 
+ 		
+### Synthesis Stats ###
+		 Synthesis Term : len (append lf2 (Cons n lf3))
+		 # Myth Enumerated Terms : 0
+		 # Valid Synthesized Lemmas : 0
+		 Valid Lemmas
+ 
+		 # Lemmas useful to prove original goal : 0
+		 Lemmas that can prove the original goal 
+ 
+------------------------------------------------------------------------
+ 
+
+
+### Generalization Stat ###
+Generalized Conjecture : conj12: forall  (x:lst)(lf2:lst)(lf1:lst) , (lt (len (append lf2 lf1)) (S (S (len x))))
+is_valid : false
+is_prover_provable (be proven by proverbot): false
+is_provable (can help prove original goal): false
+Synthesis Stats : 
+ 		
+### Synthesis Stats ###
+		 Synthesis Term : len (append lf2 lf1)
+		 # Myth Enumerated Terms : 15
+		 # Valid Synthesized Lemmas : 0
+		 Valid Lemmas
+ 
+		 # Lemmas useful to prove original goal : 0
+		 Lemmas that can prove the original goal 
+ 
+------------------------------------------------------------------------
+		
+### Synthesis Stats ###
+		 Synthesis Term : S (S (len x))
+		 # Myth Enumerated Terms : 15
+		 # Valid Synthesized Lemmas : 2
+		 Valid Lemmas
+ 			 Myth Term : ( S (len (append lf2 lf1)))
+			 Lemma : conj12synthconj1 : forall  (lv0 : lst) (lv1 : lst), (lt (len (append lv1 lv0)) (S (len (append lv1 lv0))))
+			 Myth Term : ( S (len (append lf1 lf2)))
+			 Lemma : conj12synthconj2 : forall  (lv0 : lst) (lv1 : lst), (lt (len (append lv1 lv0)) (S (len (append lv0 lv1))))
+
+		 # Lemmas useful to prove original goal : 0
+		 Lemmas that can prove the original goal 
+ 
+------------------------------------------------------------------------
+ 
+
+
+### Generalization Stat ###
+Generalized Conjecture : conj11: forall (lf3:nat)(lf2:lst)(lf1:lst) , (lt (len (append lf2 lf1)) (S (S lf3)))
+is_valid : false
+is_prover_provable (be proven by proverbot): false
+is_provable (can help prove original goal): false
+Synthesis Stats : 
+ 		
+### Synthesis Stats ###
+		 Synthesis Term : len (append lf2 lf1)
+		 # Myth Enumerated Terms : 15
+		 # Valid Synthesized Lemmas : 0
+		 Valid Lemmas
+ 
+		 # Lemmas useful to prove original goal : 0
+		 Lemmas that can prove the original goal 
+ 
+------------------------------------------------------------------------
+		
+### Synthesis Stats ###
+		 Synthesis Term : S (S lf3)
+		 # Myth Enumerated Terms : 15
+		 # Valid Synthesized Lemmas : 0
+		 Valid Lemmas
+ 
+		 # Lemmas useful to prove original goal : 0
+		 Lemmas that can prove the original goal 
+ 
+------------------------------------------------------------------------
+ 
+
+
+### Generalization Stat ###
+Generalized Conjecture : conj10: forall (lf3:lst)(lf2:nat)(lf1:lst) , (lt (len (append lf3 lf1)) (S lf2))
+is_valid : false
+is_prover_provable (be proven by proverbot): false
+is_provable (can help prove original goal): false
+Synthesis Stats : 
+ 		
+### Synthesis Stats ###
+		 Synthesis Term : len (append lf3 lf1)
+		 # Myth Enumerated Terms : 15
+		 # Valid Synthesized Lemmas : 0
+		 Valid Lemmas
+ 
+		 # Lemmas useful to prove original goal : 0
+		 Lemmas that can prove the original goal 
+ 
+------------------------------------------------------------------------
+		
+### Synthesis Stats ###
+		 Synthesis Term : S lf2
+		 # Myth Enumerated Terms : 15
+		 # Valid Synthesized Lemmas : 2
+		 Valid Lemmas
+ 			 Myth Term : ( S (len (append lf3 lf1)))
+			 Lemma : conj10synthconj1 : forall  (lv0 : lst) (lv1 : lst), (lt (len (append lv0 lv1)) (S (len (append lv0 lv1))))
+			 Myth Term : ( S (len (append lf1 lf3)))
+			 Lemma : conj10synthconj2 : forall  (lv0 : lst) (lv1 : lst), (lt (len (append lv0 lv1)) (S (len (append lv1 lv0))))
+
+		 # Lemmas useful to prove original goal : 0
+		 Lemmas that can prove the original goal 
+ 
+------------------------------------------------------------------------
+ 
+
+
+### Generalization Stat ###
+Generalized Conjecture : conj9: forall (lf3:lst)(lf2:lst)(lf1:nat) , (lt (len (append lf3 lf2)) lf1)
+is_valid : false
+is_prover_provable (be proven by proverbot): false
+is_provable (can help prove original goal): false
+Synthesis Stats : 
+ 		
+### Synthesis Stats ###
+		 Synthesis Term : len (append lf3 lf2)
+		 # Myth Enumerated Terms : 0
+		 # Valid Synthesized Lemmas : 0
+		 Valid Lemmas
+ 
+		 # Lemmas useful to prove original goal : 0
+		 Lemmas that can prove the original goal 
+ 
+------------------------------------------------------------------------
+ 
+
+
+### Generalization Stat ###
+Generalized Conjecture : conj8: forall  (x:lst)(lf1:lst) , (lt (len lf1) (S (S (len x))))
+is_valid : false
+is_prover_provable (be proven by proverbot): false
+is_provable (can help prove original goal): false
+Synthesis Stats : 
+ 		
+### Synthesis Stats ###
+		 Synthesis Term : S (S (len x))
+		 # Myth Enumerated Terms : 15
+		 # Valid Synthesized Lemmas : 4
+		 Valid Lemmas
+ 			 Myth Term : ( len (Cons (S (len lf1)) lf1))
+			 Lemma : conj8synthconj5 : forall  (lv0 : lst), (lt (len lv0) (len (Cons (S (len lv0)) lv0)))
+			 Myth Term : ( len (Cons (len lf1) lf1))
+			 Lemma : conj8synthconj10 : forall  (lv0 : lst), (lt (len lv0) (len (Cons (len lv0) lv0)))
+			 Myth Term : ( S (len (rev lf1)))
+			 Lemma : conj8synthconj12 : forall  (lv0 : lst), (lt (len lv0) (S (len (rev lv0))))
+			 Myth Term : ( S (len lf1))
+			 Lemma : conj8synthconj15 : forall  (lv0 : lst), (lt (len lv0) (S (len lv0)))
+
+		 # Lemmas useful to prove original goal : 0
+		 Lemmas that can prove the original goal 
+ 
+------------------------------------------------------------------------
+		
+### Synthesis Stats ###
+		 Synthesis Term : len lf1
+		 # Myth Enumerated Terms : 15
+		 # Valid Synthesized Lemmas : 0
+		 Valid Lemmas
+ 
+		 # Lemmas useful to prove original goal : 0
+		 Lemmas that can prove the original goal 
+ 
+------------------------------------------------------------------------
+ 
+
+
+### Generalization Stat ###
+Generalized Conjecture : conj7: forall (lf2:nat)(lf1:lst) , (lt (len lf1) (S (S lf2)))
+is_valid : false
+is_prover_provable (be proven by proverbot): false
+is_provable (can help prove original goal): false
+Synthesis Stats : 
+ 		
+### Synthesis Stats ###
+		 Synthesis Term : S (S lf2)
+		 # Myth Enumerated Terms : 15
+		 # Valid Synthesized Lemmas : 0
+		 Valid Lemmas
+ 
+		 # Lemmas useful to prove original goal : 0
+		 Lemmas that can prove the original goal 
+ 
+------------------------------------------------------------------------
+		
+### Synthesis Stats ###
+		 Synthesis Term : len lf1
+		 # Myth Enumerated Terms : 15
+		 # Valid Synthesized Lemmas : 0
+		 Valid Lemmas
+ 
+		 # Lemmas useful to prove original goal : 0
+		 Lemmas that can prove the original goal 
+ 
+------------------------------------------------------------------------
+ 
+
+
+### Generalization Stat ###
+Generalized Conjecture : conj6: forall (lf2:nat)(lf1:lst) , (lt (len lf1) (S lf2))
+is_valid : false
+is_prover_provable (be proven by proverbot): false
+is_provable (can help prove original goal): false
+Synthesis Stats : 
+ 		
+### Synthesis Stats ###
+		 Synthesis Term : len lf1
+		 # Myth Enumerated Terms : 15
+		 # Valid Synthesized Lemmas : 0
+		 Valid Lemmas
+ 
+		 # Lemmas useful to prove original goal : 0
+		 Lemmas that can prove the original goal 
+ 
+------------------------------------------------------------------------
+		
+### Synthesis Stats ###
+		 Synthesis Term : S lf2
+		 # Myth Enumerated Terms : 15
+		 # Valid Synthesized Lemmas : 0
+		 Valid Lemmas
+ 
+		 # Lemmas useful to prove original goal : 0
+		 Lemmas that can prove the original goal 
+ 
+------------------------------------------------------------------------
+ 
+
+
+### Generalization Stat ###
+Generalized Conjecture : conj5: forall (lf2:nat)(lf1:lst) , (lt (len lf1) lf2)
+is_valid : false
+is_prover_provable (be proven by proverbot): false
+is_provable (can help prove original goal): false
+Synthesis Stats : 
+ 		
+### Synthesis Stats ###
+		 Synthesis Term : len lf1
+		 # Myth Enumerated Terms : 0
+		 # Valid Synthesized Lemmas : 0
+		 Valid Lemmas
+ 
+		 # Lemmas useful to prove original goal : 0
+		 Lemmas that can prove the original goal 
+ 
+------------------------------------------------------------------------
+ 
+
+
+### Generalization Stat ###
+Generalized Conjecture : conj4: forall  (x:lst)(lf1:nat) , (lt lf1 (S (S (len x))))
+is_valid : false
+is_prover_provable (be proven by proverbot): false
+is_provable (can help prove original goal): false
+Synthesis Stats : 
+ 		
+### Synthesis Stats ###
+		 Synthesis Term : S (S (len x))
+		 # Myth Enumerated Terms : 15
+		 # Valid Synthesized Lemmas : 1
+		 Valid Lemmas
+ 			 Myth Term : ( S lf1)
+			 Lemma : conj4synthconj15 : forall  (lv0 : nat), (lt lv0 (S lv0))
+
+		 # Lemmas useful to prove original goal : 0
+		 Lemmas that can prove the original goal 
+ 
+------------------------------------------------------------------------
+ 
+
+
+### Generalization Stat ###
+Generalized Conjecture : conj3: forall (lf2:nat)(lf1:nat) , (lt lf1 (S (S lf2)))
+is_valid : false
+is_prover_provable (be proven by proverbot): false
+is_provable (can help prove original goal): false
+Synthesis Stats : 
+ 		
+### Synthesis Stats ###
+		 Synthesis Term : S (S lf2)
+		 # Myth Enumerated Terms : 15
+		 # Valid Synthesized Lemmas : 0
+		 Valid Lemmas
+ 
+		 # Lemmas useful to prove original goal : 0
+		 Lemmas that can prove the original goal 
+ 
+------------------------------------------------------------------------
+ 
+
+
+### Generalization Stat ###
+Generalized Conjecture : conj2: forall (lf2:nat)(lf1:nat) , (lt lf1 (S lf2))
+is_valid : false
+is_prover_provable (be proven by proverbot): false
+is_provable (can help prove original goal): false
+Synthesis Stats : 
+ 		
+### Synthesis Stats ###
+		 Synthesis Term : S lf2
+		 # Myth Enumerated Terms : 15
+		 # Valid Synthesized Lemmas : 0
+		 Valid Lemmas
+ 
+		 # Lemmas useful to prove original goal : 0
+		 Lemmas that can prove the original goal 
+ 
+------------------------------------------------------------------------
+ 
+
+
+### Generalization Stat ###
+Generalized Conjecture : conj1: forall (lf2:nat)(lf1:nat) , (lt lf1 lf2)
+is_valid : false
+is_prover_provable (be proven by proverbot): false
+is_provable (can help prove original goal): false
+Synthesis Stats : 
+ 		
+### Synthesis Stats ###
+		 Synthesis Term : lf2
+		 # Myth Enumerated Terms : 15
+		 # Valid Synthesized Lemmas : 0
+		 Valid Lemmas
+ 
+		 # Lemmas useful to prove original goal : 0
+		 Lemmas that can prove the original goal 
+ 
+------------------------------------------------------------------------
+		
+### Synthesis Stats ###
+		 Synthesis Term : lf1
+		 # Myth Enumerated Terms : 15
+		 # Valid Synthesized Lemmas : 0
+		 Valid Lemmas
+ 
+		 # Lemmas useful to prove original goal : 0
+		 Lemmas that can prove the original goal 
+ 
+------------------------------------------------------------------------
+		
+### Synthesis Stats ###
+		 Synthesis Term : lt
+		 # Myth Enumerated Terms : 0
+		 # Valid Synthesized Lemmas : 0
+		 Valid Lemmas
+ 
+		 # Lemmas useful to prove original goal : 0
+		 Lemmas that can prove the original goal 
+ 
+------------------------------------------------------------------------
+ 
+
