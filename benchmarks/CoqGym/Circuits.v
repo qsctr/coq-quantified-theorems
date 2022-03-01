@@ -587,3 +587,815 @@ elim a0; simpl in |- *; repeat rewrite <- plus_n_Sm;
  trivial with arith.
 
 Qed.
+
+
+(*********************************************************)
+
+Parameter size : nat. (* La taille des mots *)
+Parameter V1 : BoolList. (* Les deux entrees *)
+Parameter V2 : BoolList.
+
+Axiom size_not_O : size <> 0. Hint Resolve size_not_O.
+Axiom length_V1_size : length V1 = size. Hint Resolve length_V1_size.
+Axiom length_V2_size : length V2 = size. Hint Resolve length_V2_size.
+
+Definition Mux (b : bool) (x y: BoolList) :=
+  match b with
+  | true => x
+  | false => y
+  end.
+
+Definition lowbit (l : BoolList) :=
+  match l with
+  | nil => false
+  | b :: _ => b
+  end.
+
+Definition highs (l : BoolList) :=
+  match l with
+  | nil => nil
+  | _ :: v => v
+  end.
+
+Fixpoint BV_null (n: nat) : BoolList :=
+  match n with
+  | O => nil
+  | S n => false :: (BV_null n)
+  end.
+
+Fixpoint R1 (st : nat) : BoolList :=
+  match st return BoolList with
+  | O => V1
+  | S t =>
+      app (highs (R1 t))
+        (Mux (lowbit (R1 t))
+           (cons (lowbit (BV_full_adder_sum (R2 t) V2 false)) nil)
+           (cons (lowbit (R2 t)) nil))
+  end
+
+ with R2 (st : nat) : BoolList:=
+  match st return BoolList with
+  | O => BV_null size
+  | S t =>
+      app
+        (highs
+           (Mux (lowbit (R1 t)) (BV_full_adder_sum (R2 t) V2 false) (R2 t)))
+        (Mux (lowbit (R1 t))
+           (cons (BV_full_adder_carry (R2 t) V2 false) nil)
+           (cons false nil))
+  end.
+
+Lemma R1_eq1 : R1 0 = V1. auto with arith. Qed.
+Lemma R1_eq2 :
+ forall t : nat,
+ R1 (S t) =
+ app (highs (R1 t))
+   (Mux (lowbit (R1 t))
+      (cons (lowbit (BV_full_adder_sum (R2 t) V2 false)) nil)
+      (cons (lowbit (R2 t)) nil)).
+auto with arith. Qed.
+
+Lemma R2_eq1 : R2 0 = BV_null size. auto with arith. Qed.
+Lemma R2_eq2 :
+ forall t : nat,
+ R2 (S t) =
+ app
+   (highs (Mux (lowbit (R1 t)) (BV_full_adder_sum (R2 t) V2 false) (R2 t)))
+   (Mux (lowbit (R1 t)) (cons (BV_full_adder_carry (R2 t) V2 false) nil)
+      (cons false nil)).
+auto with arith. Qed.
+
+(****************************************************************)
+Fixpoint rev (v : BoolList) : BoolList :=
+  match v with
+  | nil => nil
+  | head :: tail => app (rev tail) (head :: nil)
+  end.
+
+Fixpoint trunc (v : BoolList) : nat -> BoolList :=
+  fun n : nat =>
+  match v return (BoolList) with
+  | nil => nil
+  | b :: w =>
+      match n return (BoolList) with
+      | O => nil
+      | S p => b :: trunc w p
+      end
+  end.
+
+Definition strip (v : BoolList) (n : nat) :=
+  rev (trunc (rev v) (length v - n)).
+
+
+Lemma length_app :
+ forall v1 v2 : BoolList,
+ (***************)
+ length (v1 ++ v2) = length v1 + length v2.
+simple induction v1. simpl in |- *. trivial with arith.
+intros. simpl in |- *. rewrite H. trivial with arith.
+Qed.
+
+Lemma plus_n_SO : forall x : nat, x + 1 = S x.
+intros; rewrite plus_comm; auto with arith.
+Qed.
+
+Lemma length_rev : forall l : BoolList, length (rev l) = length l.
+(***************)
+simple induction l; auto with arith. intros. simpl in |- *.
+rewrite length_app. simpl in |- *. rewrite plus_n_SO. rewrite H. trivial with arith.
+Qed.
+
+Lemma trunc_all : forall v : BoolList, trunc v (length v) = v.
+(**************)
+simple induction v. simpl in |- *. trivial with arith.
+intros. rewrite length_eq2. simpl in |- *. rewrite H. trivial with arith.
+Qed.
+
+Lemma cons_assoc_app : forall (b : bool) (v1 v2: BoolList),
+    b :: (v1 ++ v2) = (b :: v1) ++ v2.
+  induction v1; induction v2; auto.
+Qed.
+
+Lemma app_v_nil : forall v : BoolList, v ++ nil = v.
+  (**************)
+  induction v.
+  simpl. reflexivity.
+  rewrite <- cons_assoc_app.
+  rewrite IHv.
+  reflexivity.
+Qed.
+
+Lemma app_assoc_r : forall v1 v2 v3: BoolList, (v1 ++ v2) ++ v3 = v1 ++ (v2 ++ v3).
+Proof.
+  induction v1; induction v2; induction v3; repeat rewrite app_v_nil; auto.
+  simpl. f_equal. rewrite IHv1. simpl. reflexivity.
+Qed.
+
+Lemma rev_app : forall l n : BoolList, rev (l ++ n) = rev n ++ rev l.
+(************)
+  simple induction l; auto with arith.
+  { simpl. intro. rewrite app_v_nil. reflexivity. }
+  { intros. simpl in |- *. rewrite H. apply app_assoc_r. }
+Qed.
+
+Lemma rev_rev : forall l : BoolList, rev (rev l) = l.
+(************)
+simple induction l; auto with arith. intros; simpl in |- *. rewrite rev_app. rewrite H. auto with arith.
+Qed.
+
+Lemma strip_O : forall v : BoolList, strip v 0 = v.
+(************)
+intro. unfold strip in |- *. rewrite <- minus_n_O. rewrite <- length_rev.
+rewrite trunc_all. rewrite rev_rev. trivial with arith.
+Qed.
+
+Lemma trunc_O : forall v : BoolList, trunc v 0 = nil.
+(************)
+simple induction v; auto with arith.
+Qed.
+
+Lemma strip_all : forall v : BoolList, strip v (length v) = nil.
+(**************)
+unfold strip in |- *. intro. rewrite <- minus_n_n. rewrite trunc_O. auto with arith.
+Qed.
+
+Lemma BV_null_nat : forall n : nat, BV_to_nat (BV_null n) = 0.
+(****************)
+unfold BV_null in |- *.
+simple induction n; auto.
+intros. simpl in |- *. rewrite H. auto.
+Qed.
+
+Lemma lowbit_is_trunc :
+ forall v : BoolList, v <> nil -> cons (lowbit v) nil = trunc v 1.
+simple induction v. intro. absurd (nil <> nil); unfold not in |- *; auto with arith.
+intros. simpl in |- *. rewrite trunc_O. trivial with arith.
+Qed.
+
+
+Lemma Invariant_t_O :
+ BV_to_nat (app (strip (R1 0) size) (R2 0)) =
+ BV_to_nat V2 * BV_to_nat (trunc V1 0).
+intros. simpl in |- *.
+rewrite BV_to_nat_app2. rewrite trunc_O. rewrite <- length_V1_size.
+rewrite strip_all. rewrite length_V1_size.
+simpl in |- *. elim plus_n_O. elim mult_n_O. rewrite BV_null_nat. trivial with arith.
+Qed.
+
+(****************************************************************)
+(* Ensuite, lors de la preuve par induction pour t quelconque,
+   on doit faire une preuve par cas selon R1[0].
+   On fait la preuve pour R1[0]=false:  (assez long)
+ *)
+
+Definition abit (v : BoolList) (i : nat) := trunc (strip v i) 1.
+
+Lemma lowbit_is_abit :
+ forall v : BoolList, v <> nil -> cons (lowbit v) nil = abit v 0.
+intros. unfold abit in |- *. rewrite strip_O.
+apply lowbit_is_trunc. exact H.
+Qed.
+
+Lemma trunc_app :
+ forall (v1 v2 : BoolList) (i : nat),
+ (**************)
+ trunc (v1 ++ v2) i = trunc v1 i ++ trunc v2 (i - length v1).
+simple induction v1. simpl in |- *. auto with arith.
+intros. rewrite app_eq2.
+rewrite length_eq2. elim i. simpl in |- *. rewrite trunc_O. trivial with arith.
+intros. simpl in |- *. rewrite H. trivial with arith.
+Qed.
+
+Lemma rev_eq : forall l n : BoolList, l = n -> rev l = rev n.
+(***********)
+intros; replace l with n; auto with arith.
+Qed.
+
+
+Lemma minus_le_O : forall a b : nat, a <= b -> a - b = 0.
+intros. pattern a, b in |- *. apply le_elim_rel. auto with arith.
+intros. simpl in |- *. exact H1.
+exact H.
+Qed.
+
+Lemma minus_n_SO : forall n : nat, n - 1 = pred n.
+simple induction n. auto with arith. intros. simpl in |- *. auto with arith.
+Qed.
+
+Lemma minus_le_lem2c : forall a b : nat, a - S b <= a - b.
+intros. pattern a, b in |- *. apply nat_double_ind. auto with arith.
+intro. elim minus_n_O. rewrite minus_n_SO. simpl in |- *. auto with arith.
+intros. simpl in |- *. exact H.
+Qed.
+
+Lemma minus_le_lem2 : forall a b : nat, a - b <= a.
+simple induction b. elim minus_n_O. auto with arith.
+intros. apply le_trans with (a - n). apply minus_le_lem2c.
+exact H.
+Qed.
+Lemma minus_minus_lem1 : forall a b : nat, a - b - a = 0.
+intros. apply minus_le_O. apply minus_le_lem2.
+Qed.
+
+Lemma minus_minus_lem2 : forall a b : nat, b <= a -> a - (a - b) = b.
+simple induction b. intros. elim minus_n_O. elim minus_n_n. trivial with arith. intros.
+replace (a - (a - S n)) with (S a - S (a - S n)).
+rewrite <- (minus_Sn_m a (S (a - S n))). rewrite (minus_Sn_m a (S n)).
+simpl in |- *. rewrite <- H. rewrite H. rewrite H. trivial with arith.
+apply le_Sn_le. exact H0.
+apply le_Sn_le. exact H0. apply le_Sn_le. exact H0. exact H0.
+rewrite minus_Sn_m. simpl in |- *. apply minus_le_lem2. exact H0. simpl in |- *. trivial with arith.
+Qed.
+
+Lemma strip_cons_S :
+ forall (v : BoolList) (i : nat) (b : bool),
+ (*****************)
+ strip (b :: v) (S i) = strip v i.
+unfold strip in |- *. simple induction i. simpl in |- *.
+elim minus_n_O. intro. replace (length v) with (length (rev v)).
+rewrite trunc_all. rewrite trunc_app. rewrite trunc_all.
+elim minus_n_n. rewrite trunc_O. rewrite app_v_nil. trivial with arith.
+apply length_rev.
+intros. apply rev_eq. simpl in |- *.
+rewrite trunc_app. rewrite length_rev. rewrite minus_minus_lem1.
+rewrite trunc_O. rewrite app_v_nil. trivial with arith.
+Qed.
+Lemma highs_is_strip : forall v : BoolList, highs v = strip v 1.
+simple induction v. simpl in |- *. auto with arith.
+intros. simpl in |- *. rewrite strip_cons_S. rewrite strip_O. trivial with arith.
+Qed.
+
+
+Lemma length_trunc :
+ forall (v : BoolList) (i : nat),
+ (*****************)
+ i <= length v -> length (trunc v i) = i.
+simple induction v. simpl in |- *. auto with arith.
+intros b b0 H. simple induction i. simpl in |- *. trivial with arith.
+simpl in |- *. intros. apply eq_S. apply H. apply le_S_n. exact H1.
+Qed.
+
+
+Lemma length_strip :
+ forall (v : BoolList) (i : nat),
+ (*****************)
+ i <= length v -> length (strip v i) = length v - i.
+unfold strip in |- *. intros. rewrite length_rev. rewrite length_trunc. trivial with arith.
+rewrite length_rev. apply minus_le_lem2.
+Qed.
+
+Lemma length_if: forall (b: bool) (v1 v2: BoolList),
+    length (if b then v1 else v2) = if b then length v1 else length v2.
+Proof.
+  simple induction b; auto.
+Qed.
+
+Lemma highs_if: forall (b: bool) (v1 v2: BoolList),
+    highs (if b then v1 else v2) = if b then highs v1 else highs v2.
+Proof.
+  simple induction b; auto.
+Qed.
+
+Lemma If_eq_nat: forall (b: bool) (n: nat),
+    (if b then n else n) = n.
+Proof.
+  simple induction b; auto.
+Qed.
+
+Lemma length_R1 : forall t : nat, t <= size -> length (R1 t) = size.
+simple induction t. auto with arith.
+intros. rewrite R1_eq2. rewrite length_app.
+unfold Mux in |- *. rewrite length_if. simpl in |- *. rewrite If_eq_nat.
+rewrite highs_is_strip. rewrite length_strip. (* unfold length in H.*)
+rewrite H. symmetry  in |- *. rewrite plus_comm. lia.
+apply le_Sn_le; auto with arith. rewrite H. lia. lia.
+Qed.
+
+
+Fixpoint list_const (n : nat) : bool -> BoolList :=
+
+ (*****************)
+ fun x : bool =>
+ match n return BoolList with
+ | O => nil
+ | S n' => x :: list_const n' x
+ end.
+
+Lemma length_list_const :
+ forall (n : nat) (x : bool), length (BV_null n) = n.
+(**********************)
+simple induction n. auto with arith. intros. simpl in |- *. auto with arith.
+Qed.
+
+Lemma length_R2 : forall t : nat, t <= size -> length (R2 t) = size.
+  simple induction t. simpl in |- *.
+rewrite length_list_const. trivial with arith. exact true.
+intros. rewrite R2_eq2.
+rewrite length_app. unfold Mux.
+rewrite highs_if.
+rewrite length_if.
+rewrite highs_is_strip. rewrite length_strip.
+rewrite length_BV_full_adder_sum.
+rewrite H. rewrite highs_is_strip. rewrite length_strip.
+rewrite H. rewrite If_eq_nat. rewrite length_if. simpl in |- *.
+rewrite If_eq_nat. symmetry  in |- *. rewrite plus_comm. apply le_plus_minus. lia. lia. lia. lia.  rewrite H. apply eq_sym. apply length_V2_size. lia.
+rewrite length_BV_full_adder_sum.
+rewrite H. lia. apply le_Sn_le; exact H0.
+rewrite H. apply eq_sym. apply length_V2_size. lia.
+Qed.
+
+Lemma not_nil : forall v : BoolList, length v <> 0 -> v <> nil.
+(************)
+simple induction v. simpl in |- *; intro. absurd (0 <> 0). unfold not in |- *; auto with arith. exact H.
+simpl in |- *. intros. discriminate.
+Qed.
+
+Lemma R1_never_nil : forall t : nat, t <= size -> R1 t <> nil.
+intros. apply not_nil. rewrite length_R1. auto with arith. exact H.
+Qed.
+
+Lemma strip_nil : forall i : nat, strip nil i = nil.
+(**************)
+intro. auto with arith.
+Qed.
+Lemma strip_app :
+ forall (v1 v2 : BoolList) (i : nat),
+ (**************)
+ strip (v1 ++ v2) i = strip v1 i ++ strip v2 (i - length v1).
+simple induction v1. simpl in |- *. intros. elim minus_n_O. trivial with arith.
+simple induction v2. intro. simpl in |- *.
+rewrite strip_nil. rewrite app_v_nil. rewrite app_v_nil. trivial with arith.
+simple induction i.
+rewrite strip_O. simpl in |- *. rewrite strip_O. rewrite strip_O. auto with arith.
+intros. rewrite app_eq2. rewrite strip_cons_S.
+rewrite strip_cons_S. rewrite length_eq2. simpl in |- *. apply H.
+Qed.
+
+Lemma strip_strip :
+ forall (v : BoolList) (i j : nat),
+ (****************)
+ strip (strip v i) j = strip v (i + j).
+simple induction v. intros. rewrite strip_nil. rewrite strip_nil. trivial with arith.
+simple induction i. intro. simpl in |- *. rewrite strip_O. trivial with arith.
+simple induction j. rewrite strip_O. elim plus_n_O. trivial with arith.
+intros. rewrite strip_cons_S. simpl in |- *. rewrite strip_cons_S. apply H.
+Qed.
+
+Lemma power2_eq2 : forall x : nat, power2 (S x) = power2 x + power2 x.
+Proof.
+ auto with arith.
+Qed.
+
+Lemma mult_sym : forall a b : nat, a * b = b * a.
+intros a b; elim a; simpl in |- *; auto with arith.
+intros y H.
+replace (y * b) with (b * y).
+elim (mult_n_Sm b y).
+apply plus_comm.
+Qed.
+
+Lemma app_trunc_strip :
+ forall (v : BoolList) (i : nat),
+ (********************)
+ trunc v i ++ strip v i = v.
+simple induction v. unfold strip in |- *. simpl in |- *. trivial with arith.
+intros. elim i. rewrite trunc_O. rewrite strip_O. simpl in |- *. trivial with arith.
+intros. unfold strip in |- *. simpl in |- *.
+rewrite trunc_app. rewrite rev_app. rewrite length_rev.
+case n. rewrite <- minus_n_O.
+rewrite <- minus_n_n. rewrite trunc_O. rewrite trunc_O. simpl in |- *.
+rewrite <- length_rev. rewrite trunc_all. rewrite rev_rev. trivial with arith.
+intro. replace (length b0 - S n0 - length b0) with 0.
+rewrite trunc_O. simpl in |- *.
+replace (rev (trunc (rev b0) (length b0 - S n0))) with (strip b0 (S n0)).
+rewrite H. trivial with arith.
+unfold strip in |- *. trivial with arith.
+rewrite minus_minus_lem1. trivial with arith.
+Qed.
+
+Lemma app_lowbit_highs :
+ forall v : BoolList, v <> nil -> app (cons (lowbit v) nil) (highs v) = v.
+intros. rewrite lowbit_is_trunc. rewrite highs_is_strip.
+rewrite app_trunc_strip. trivial with arith. exact H.
+Qed.
+
+Lemma BV_nat_lem1 :
+ forall (v : BoolList) (n : nat),
+ length v <> 0 ->
+ power2 n * BV_to_nat (cons (lowbit v) nil) +
+ power2 (S n) * BV_to_nat (highs v) = power2 n * BV_to_nat v.
+
+intros. rewrite power2_eq2. rewrite mult_plus_distr_r.
+replace (BV_to_nat v) with
+ (BV_to_nat (app (cons (lowbit v) nil) (highs v))).
+rewrite BV_to_nat_app2.
+rewrite
+ (mult_sym (power2 n)
+    (BV_to_nat (cons (lowbit v) nil) +
+     power2 (length (cons (lowbit v) nil)) * BV_to_nat (highs v)))
+ .
+rewrite mult_plus_distr_r.
+simpl in |- *. elim plus_n_O. elim plus_n_O. rewrite mult_plus_distr_r.
+rewrite (mult_sym (power2 n)). rewrite (mult_sym (power2 n)). trivial with arith.
+rewrite app_lowbit_highs. trivial with arith.
+apply not_nil. exact H.
+Qed.
+
+Lemma le_minus_minus : forall a b c : nat, c <= b -> a - b <= a - c.
+simple induction a. simpl in |- *. auto with arith.
+intros. generalize H0. elim c. elim minus_n_O. intro. apply minus_le_lem2.
+elim b. intros. absurd (S n0 <= 0). auto with arith.
+exact H2.
+intros. simpl in |- *. apply H. apply le_S_n. exact H3.
+Qed.
+
+Lemma v_not_nil_length :
+ forall v : BoolList,
+ (*********************)
+ v <> nil -> 1 <= length v.
+simple induction v. intro. absurd (nil <> nil :>BoolList). unfold not in |- *. auto with arith.
+exact H.
+intros. simpl in |- *. apply le_n_S. auto with arith.
+Qed.
+
+Lemma length_highs :
+ forall v : BoolList, v <> nil -> length (highs v) = pred (length v).
+intros. rewrite highs_is_strip.
+rewrite length_strip. apply minus_n_SO.
+apply v_not_nil_length. exact H.
+Qed.
+
+Lemma inv_ind_false :
+ forall t n : nat,
+ (n <= size ->
+  BV_to_nat (app (strip (R1 n) (size - n)) (R2 n)) =
+  BV_to_nat V2 * BV_to_nat (trunc V1 n)) ->
+ S n <= size ->
+ n <= size ->
+ BV_to_nat
+   (app
+      (strip
+         (app (highs (R1 n))
+            (Mux false (abit (BV_full_adder_sum (R2 n) V2 false) 0)
+               (cons (lowbit (R2 n)) nil))) (size - S n))
+      (app (highs (Mux false (BV_full_adder_sum (R2 n) V2 false) (R2 n)))
+         (Mux false (cons (BV_full_adder_carry (R2 n) V2 false) nil)
+            (cons false nil)))) =
+ BV_to_nat V2 * BV_to_nat (app (trunc V1 n) (cons false nil)).
+intros.
+simpl in |- *.
+do 3 rewrite BV_to_nat_app2.
+simpl in |- *.
+elim mult_n_O.
+elim mult_n_O.
+elim plus_n_O.
+elim plus_n_O.
+rewrite length_strip.
+rewrite <- H.
+clear H.
+rewrite length_app.
+rewrite highs_is_strip.
+rewrite length_strip.
+rewrite length_R1.
+simpl in |- *.
+replace (size - 1 + 1) with size.
+rewrite minus_minus_lem2.
+rewrite strip_app.
+rewrite BV_to_nat_app2.
+rewrite strip_strip.
+rewrite length_strip.
+rewrite length_R1.
+rewrite length_strip.
+rewrite BV_to_nat_app2.
+rewrite length_strip.
+rewrite length_R1.
+rewrite minus_minus_lem2.
+replace (1 + (size - S n)) with (size - n).
+rewrite minus_minus_lem2.
+rewrite (minus_le_O (size - S n) (size - 1)).
+rewrite strip_O.
+rewrite plus_assoc_reverse.
+replace
+ (power2 n * BV_to_nat (cons (lowbit (R2 n)) nil) +
+  power2 (S n) * BV_to_nat (highs (R2 n))) with (power2 n * BV_to_nat (R2 n)).
+trivial with arith. symmetry  in |- *. apply BV_nat_lem1.
+rewrite length_R2. exact size_not_O. exact H1. apply le_minus_minus; auto with arith.
+exact H1. simpl in |- *. rewrite minus_Sn_m. auto with arith.
+exact H0. exact H1. exact H1. rewrite length_R1. lia. exact H1.
+rewrite length_R1. lia.  exact H1. exact H1. rewrite length_R1.
+simpl in |- *. rewrite minus_Sn_m. simpl in |- *. lia. exact H0. exact H1.
+exact H0. rewrite plus_comm. simpl in |- *. rewrite minus_Sn_m; lia.
+ exact H1. rewrite length_R1. lia. exact H1. exact H1.
+rewrite length_app. rewrite length_highs. rewrite length_R1.
+simpl in |- *. rewrite plus_n_SO. replace (pred size) with (size - 1).
+rewrite minus_Sn_m. simpl in |- *. elim minus_n_O. apply minus_le_lem2; lia. lia. lia. lia.
+apply not_nil. rewrite length_R1. auto. auto.
+Qed.
+
+(****************************************************************)
+(* Puis pour le cas ou R1[0]=true (tres tres long !!!!!)
+*)
+
+Lemma mult_plus_distr2 : forall n m p : nat, n * (m + p) = n * m + n * p.
+intros. rewrite mult_sym. rewrite mult_plus_distr_r. rewrite mult_sym.
+replace (p * n) with (n * p). trivial with arith. apply mult_sym.
+Qed.
+
+
+Lemma length_abit :
+ forall (v : BoolList) (i : nat), i < length v -> length (abit v i) = 1.
+intros. unfold abit in |- *. rewrite length_trunc. trivial with arith.
+rewrite length_strip. inversion H. rewrite <- minus_Sn_m. auto with arith. auto with arith.
+rewrite <- minus_Sn_m. auto with arith. apply le_Sn_le. exact H1. apply lt_le_weak. exact H.
+Qed.
+
+Lemma power2_plus : forall x y : nat, power2 (x + y) = power2 x * power2 y.
+simple induction x. intros. simpl in |- *. elim plus_n_O; auto with arith.
+intros. simpl in |- *. rewrite H. rewrite mult_plus_distr_r. trivial with arith.
+Qed.
+
+Lemma inv_ind_true :
+ forall t n : nat,
+ (n <= size ->
+  BV_to_nat (app (strip (R1 n) (size - n)) (R2 n)) =
+  BV_to_nat V2 * BV_to_nat (trunc V1 n)) ->
+ S n <= size ->
+ n <= size ->
+ BV_to_nat
+   (app
+      (strip
+         (app (highs (R1 n))
+            (Mux true (abit (BV_full_adder_sum (R2 n) V2 false) 0)
+               (cons (lowbit (R2 n)) nil))) (size - S n))
+      (app (highs (Mux true (BV_full_adder_sum (R2 n) V2 false) (R2 n)))
+         (Mux true (cons (BV_full_adder_carry (R2 n) V2 false) nil)
+            (cons false nil)))) =
+ BV_to_nat V2 * BV_to_nat (app (trunc V1 n) (cons true nil)).
+
+intros. simpl in |- *. do 3 rewrite BV_to_nat_app2. simpl in |- *.
+rewrite mult_plus_distr2.
+rewrite
+ (mult_plus_distr2 (BV_to_nat V2) (BV_to_nat (trunc V1 n))
+    (power2 (length (trunc V1 n)) * 1)).
+rewrite <- H. clear H. elim plus_n_O.
+rewrite highs_is_strip. rewrite highs_is_strip.
+rewrite length_trunc. rewrite length_strip.
+ rewrite length_app. rewrite length_strip.
+ rewrite length_strip. rewrite length_abit.
+ rewrite length_R1. rewrite (plus_comm (size - 1)).
+ replace (1 + (size - 1)) with size.
+rewrite minus_minus_lem2. rewrite length_BV_full_adder_sum.
+rewrite length_R2. rewrite strip_app.
+ rewrite BV_to_nat_app2. rewrite strip_strip.
+ rewrite length_strip. rewrite length_strip.
+ rewrite length_R1. rewrite BV_to_nat_app2.
+simpl in |- *. rewrite minus_Sn_m.
+ rewrite (minus_le_O (size - S n) (size - 1)).
+simpl in |- *. rewrite minus_minus_lem2.
+ rewrite strip_O. rewrite length_strip.
+ rewrite length_R1. rewrite minus_minus_lem2.
+replace (power2 n + power2 n) with (power2 (S n)).
+replace (power2 n * 1) with (power2 n).
+ rewrite <- (mult_assoc_reverse (power2 (S n))).
+rewrite <- power2_plus. simpl in |- *. rewrite <- power2_eq2. rewrite <- power2_eq2.
+replace (S (n + (size - 1))) with (n + size).
+repeat rewrite plus_assoc_reverse.
+replace
+ (power2 n * BV_to_nat (abit (BV_full_adder_sum (R2 n) V2 false) 0) +
+  (power2 (S n) * BV_to_nat (strip (BV_full_adder_sum (R2 n) V2 false) 1) +
+   power2 (n + size) * bool_to_nat (BV_full_adder_carry (R2 n) V2 false)))
+ with (power2 n * BV_to_nat (R2 n) + BV_to_nat V2 * power2 n).
+trivial with arith. rewrite plus_assoc. rewrite <- highs_is_strip.
+ unfold abit in |- *. rewrite strip_O.
+rewrite <- lowbit_is_trunc. rewrite BV_nat_lem1. rewrite power2_plus.
+ rewrite (mult_assoc_reverse (power2 n)). rewrite <- mult_plus_distr2.
+replace size with (length (BV_full_adder_sum (R2 n) V2 false)).
+replace (bool_to_nat (BV_full_adder_carry (R2 n) V2 false)) with
+ (BV_to_nat (cons (BV_full_adder_carry (R2 n) V2 false) nil)).
+rewrite <- BV_to_nat_app2.
+replace
+ (app (BV_full_adder_sum (R2 n) V2 false)
+    (cons (BV_full_adder_carry (R2 n) V2 false) nil)) with
+ (BV_full_adder (R2 n) V2 false).
+rewrite BV_full_adder_ok.
+ rewrite mult_plus_distr2. rewrite mult_plus_distr2.
+simpl in |- *. elim mult_n_O. elim plus_n_O. rewrite (mult_sym (BV_to_nat V2)).
+ trivial with arith. unfold BV_full_adder in |- *. trivial with arith.
+simpl in |- *. elim plus_n_O. trivial with arith. rewrite length_BV_full_adder_sum; auto with arith.
+rewrite length_R2; lia. rewrite length_V2_size. apply length_R2. assumption. rewrite length_BV_full_adder_sum.
+rewrite length_R2. lia. assumption.
+rewrite length_R2. rewrite length_V2_size; auto with arith. assumption.
+apply not_nil; auto with arith. rewrite length_BV_full_adder_sum; auto with arith.
+ rewrite length_R2; auto with arith. rewrite length_R2; auto with arith.
+replace (S (n + (size - 1))) with (S n + (size - 1)).
+replace (S n + (size - 1)) with (n + S (size - 1)).
+rewrite minus_Sn_m. simpl in |- *. elim minus_n_O. trivial with arith. lia.
+rewrite plus_comm. simpl in |- *. rewrite plus_comm. trivial with arith.
+simpl in |- *. trivial with arith. rewrite mult_sym. simpl in |- *. elim plus_n_O.
+trivial with arith. auto with arith. exact H1. exact H1. rewrite length_R1; auto with arith.
+lia.
+ exact H1. apply le_minus_minus. auto with arith. exact H0. exact H1.
+rewrite length_R1. lia. exact H1. rewrite length_R1; auto with arith.
+exact H1.
+rewrite length_R2; auto with arith. exact H0. simpl in |- *. rewrite minus_Sn_m.
+auto with arith. lia. exact H1. rewrite length_BV_full_adder_sum; auto with arith.
+unfold lt in |- *. rewrite length_R2. lia. exact H1. transitivity size; auto with arith.
+rewrite length_R2; auto.
+rewrite length_BV_full_adder_sum; auto with arith. rewrite length_R2; try lia.
+ rewrite length_R2; try lia. rewrite length_V2_size. reflexivity. rewrite length_R1; auto with arith. lia.
+rewrite length_app. rewrite length_strip.
+rewrite length_R1; try lia. rewrite length_R1. lia. auto. rewrite length_V1_size. auto. auto.
+Qed.
+
+Lemma app_trunc_abit:
+ forall (v : BoolList) (i : nat),
+ (***********************)
+ S i <= length v -> trunc v i ++ abit v i = trunc v (S i).
+simple induction v. unfold abit in |- *. simpl in |- *. trivial with arith.
+simple induction i. simpl in |- *. unfold abit in |- *. rewrite trunc_O.
+rewrite strip_O. simpl in |- *. rewrite trunc_O. trivial with arith.
+intros. simpl in |- *. unfold abit in |- *.
+rewrite strip_cons_S. unfold abit in H. rewrite H. trivial with arith.
+generalize H1. simpl in |- *. auto with arith.
+Qed.
+
+Lemma trunc_max :
+ forall (v : BoolList) (i : nat),
+ (**************)
+ length v <= i -> trunc v i = v.
+simple induction v. simpl in |- *. trivial with arith.
+intros. inversion H0. rewrite trunc_all. trivial with arith.
+simpl in |- *. rewrite H. trivial with arith.
+apply le_Sn_le. generalize H1. simpl in |- *. trivial with arith.
+Qed.
+
+Lemma trunc_sym :
+ forall (v : BoolList) (i j : nat),
+ (**************)
+ trunc (trunc v i) j = trunc (trunc v j) i.
+simple induction v. simpl in |- *. trivial with arith.
+simple induction i; simple induction j. trivial with arith.
+repeat rewrite trunc_O. simpl in |- *. trivial with arith.
+repeat rewrite trunc_O. simpl in |- *. trivial with arith.
+intros. simpl in |- *. rewrite H. trivial with arith.
+Qed.
+
+Lemma le_length_trunc :
+ forall (v : BoolList) (i : nat), length (trunc v i) <= i.
+(********************)
+simple induction v. simpl in |- *. auto with arith.
+intros. case i. rewrite trunc_O. auto with arith.
+intro. simpl in |- *. apply le_n_S. apply H.
+Qed.
+
+Lemma trunc_trunc3 :
+ forall (v : BoolList) (i j : nat),
+ (*****************)
+ j <= i -> trunc (trunc v i) j = trunc v j.
+intros. rewrite <- (trunc_max (trunc v j) i). rewrite trunc_sym. trivial with arith.
+apply le_trans with j. apply le_length_trunc.
+exact H.
+Qed.
+
+Lemma trunc_plus_petit :
+ forall (v1 v2 : BoolList) (i j : nat),
+ (*********************)
+ j <= i -> trunc v1 i = v2 -> trunc v1 j = trunc v2 j.
+intros. rewrite <- H0. rewrite trunc_trunc3. trivial with arith. exact H.
+Qed.
+
+Lemma strip_trunc_i :
+ forall (v : BoolList) (i : nat), strip (trunc v i) i = nil.
+(******************)
+simple induction v. auto with arith.
+simple induction i. auto with arith.
+intros. simpl in |- *. rewrite strip_cons_S. apply H.
+Qed.
+
+Lemma trunc_strip :
+ forall (v : BoolList) (i j : nat),
+ (****************)
+ trunc (strip v i) j = strip (trunc v (i + j)) i.
+simple induction v. unfold strip in |- *. simpl in |- *. trivial with arith.
+simple induction i; simple induction j. rewrite trunc_O. rewrite strip_O. auto with arith.
+intros. rewrite strip_O. rewrite strip_O. auto with arith.
+rewrite trunc_O. elim plus_n_O. rewrite strip_trunc_i. trivial with arith.
+intros.
+rewrite strip_cons_S. replace (S n + S n0) with (S (n + S n0)).
+simpl in |- *. rewrite strip_cons_S. apply H.
+auto with arith.
+Qed.
+
+Lemma R1_lem :
+ forall t : nat, (* R1(t)[0:n-1-t]=B[t:n-1] *)
+ t <= size -> trunc (R1 t) (size - t) = strip V1 t.
+simple induction t. elim minus_n_O. rewrite <- (length_R1 0).
+intro. rewrite trunc_all. rewrite strip_O. auto with arith.
+auto with arith. intros. rewrite R1_eq2. rewrite highs_is_strip.
+rewrite trunc_app. rewrite trunc_strip.
+rewrite length_strip. rewrite length_R1.
+replace (size - S n - (size - 1)) with 0.
+rewrite trunc_O.
+replace (1 + (size - S n)) with (size - n).
+rewrite app_v_nil.
+rewrite H. rewrite strip_strip. rewrite plus_comm. simpl in |- *. auto with arith.
+apply le_Sn_le; exact H0.
+simpl in |- *. rewrite minus_Sn_m. simpl in |- *. trivial with arith.
+exact H0.
+symmetry  in |- *. apply minus_le_O. apply le_minus_minus. auto with arith.
+apply le_Sn_le; exact H0.
+rewrite length_R1. lia. lia.
+Qed.
+
+Lemma R1_lem3 :
+ forall t : nat, (* R1(t)[0]=B[t] *)
+ t < size -> abit (R1 t) 0 = abit V1 t.
+intros. unfold abit in |- *.
+apply trunc_plus_petit with (size - t).
+unfold lt in H. inversion H. rewrite <- minus_Sn_m. auto with arith. auto with arith.
+rewrite <- minus_Sn_m. auto with arith. apply le_Sn_le; auto with arith.
+rewrite strip_O. apply R1_lem. apply lt_le_weak. exact H.
+Qed.
+
+Lemma Invariant :
+ forall t : nat,
+ t <= size ->
+ BV_to_nat (app (strip (R1 t) (size - t)) (R2 t)) =
+ BV_to_nat V2 * BV_to_nat (trunc V1 t).
+
+simple induction t. intros. elim minus_n_O. apply Invariant_t_O.
+intros. rewrite <- app_trunc_abit.
+replace (abit V1 n) with (abit V1 n).
+rewrite <- (R1_lem3 n). rewrite R1_eq2. rewrite R2_eq2.
+rewrite <- lowbit_is_abit. case (lowbit (R1 n)).
+replace (cons (lowbit (BV_full_adder_sum (R2 n) V2 false)) nil) with
+ (abit (BV_full_adder_sum (R2 n) V2 false) 0).
+apply inv_ind_true. auto with arith.
+intros. apply H. exact H1. exact H0.
+apply le_Sn_le; exact H0. unfold abit in |- *. rewrite lowbit_is_trunc.
+rewrite strip_O. trivial with arith.
+apply not_nil. rewrite length_BV_full_adder_sum. rewrite length_R2.
+exact size_not_O. apply le_Sn_le; exact H0.
+rewrite length_R2. rewrite length_V2_size. trivial with arith.
+apply le_Sn_le; exact H0.
+replace (cons (lowbit (BV_full_adder_sum (R2 n) V2 false)) nil) with
+ (abit (BV_full_adder_sum (R2 n) V2 false) 0).
+apply inv_ind_false. trivial with arith.
+exact H. exact H0. apply le_Sn_le; exact H0. rewrite lowbit_is_trunc.
+unfold abit in |- *. rewrite strip_O. trivial with arith.
+apply not_nil.
+rewrite length_BV_full_adder_sum. rewrite length_R2; auto with arith.
+transitivity size.
+rewrite length_R2; trivial with arith. apply le_Sn_le; exact H0. auto with arith.
+apply not_nil. rewrite length_R1; auto with arith. auto with arith. auto with arith.
+rewrite length_V1_size. exact H0.
+Qed.
+
+Theorem Correct :
+ BV_to_nat (app (R1 size) (R2 size)) = BV_to_nat V2 * BV_to_nat V1.
+
+intros. rewrite <- (strip_O (R1 size)).
+replace (BV_to_nat V1) with (BV_to_nat (trunc V1 size)).
+rewrite (minus_n_n size). apply Invariant. auto with arith.
+rewrite <- length_V1_size. rewrite trunc_all. trivial with arith.
+Qed.
