@@ -1399,3 +1399,561 @@ replace (BV_to_nat V1) with (BV_to_nat (trunc V1 size)).
 rewrite (minus_n_n size). apply Invariant. auto with arith.
 rewrite <- length_V1_size. rewrite trunc_all. trivial with arith.
 Qed.
+
+(******************************************************************)
+Parameter a_size d_size : nat.  (* address and data sizes *)
+
+Parameter di_init cx_init al_init : BoolList.
+
+Definition addr := nat.
+Inductive Memo : Type :=
+| nilm : Memo
+| consm : BoolList -> Memo -> Memo.
+Fixpoint MemoSize (l: Memo): nat :=
+  match l with
+  | nilm => O
+  | consm _ l' => S (MemoSize l')
+  end.
+Fixpoint MemoEmpty (n: nat) (v: BoolList) : Memo :=
+  match n with
+  | O => nilm
+  | S n' => consm v (MemoEmpty n' v)
+  end.
+Fixpoint MemoZone (m: Memo) (a: addr) (l: nat): Memo :=
+  match m with
+  | nilm => nilm
+  | consm headm tailm =>
+      match a with
+      | O =>
+          match l with
+          | O => consm headm nilm
+          | S l' => consm headm (MemoZone tailm a l')
+          end
+      | S a' => MemoZone tailm a' l
+      end
+  end.
+
+Fixpoint MemoRead (m: Memo) (a: addr): Memo :=
+  match m with
+  | nilm => nilm
+  | consm headm tailm =>
+      match a with
+      | O => consm headm nilm
+      | S a' => MemoRead tailm a'
+      end
+  end.
+
+Fixpoint MemoWrite (m: Memo) (a: addr) (bv: BoolList): Memo :=
+  match m with
+  | nilm => nilm
+  | consm headm tailm =>
+      match a with
+      | O => consm bv tailm
+      | S a' => consm headm (MemoWrite tailm a' bv)
+      end
+  end.
+
+Definition MMemo (v: BoolList) : Memo := consm v nilm.
+
+Lemma read_write:
+  forall (m: Memo) (a: addr) (v: BoolList),
+    a < MemoSize m -> MemoRead (MemoWrite m a v) a = MMemo v.
+  induction m.
+  { intros. simpl in H. inversion H. }
+  { induction a.
+    { intros. simpl. unfold MMemo. reflexivity. }
+    { intros. simpl.
+      apply IHm. simpl in H. apply lt_S_n. assumption. }
+  }
+Qed.
+
+Parameter mem_init : Memo.
+
+Axiom di_initsize : length di_init = a_size.
+Axiom cx_initsize : length cx_init = a_size.
+Axiom al_initsize : length al_init = d_size.
+Axiom mem_initsize : MemoSize mem_init = a_size.
+
+Fixpoint IsNull (v : BoolList) : bool :=
+  match v return bool with
+  | nil => true
+  | b :: w =>
+      match b return bool with
+      | true => false
+      | false => IsNull w
+      end
+  end.
+Lemma IsNull_nil : IsNull nil = true.
+auto.
+Qed.
+
+Lemma IsNull_false :
+ forall (a : bool) (v : BoolList), IsNull (cons a v) = true -> a = false.
+simple induction a. simpl in |- *. auto. trivial.
+Qed.
+
+Lemma IsNull_cons :
+ forall (a : bool) (v : BoolList), IsNull (cons a v) = true -> IsNull v = true.
+simple induction a. simpl in |- *. intros. absurd (false = true).
+auto. exact H. intros v. auto.
+Qed.
+
+Lemma IsNull_null : forall n : nat, IsNull (BV_null n) = true.
+simple induction n. simpl in |- *. trivial.
+intros. simpl in |- *. exact H.
+Qed.
+
+Lemma IsNull_BV_null :
+ forall v : BoolList, IsNull v = true -> v = BV_null (length v).
+simple induction v. simpl in |- *. unfold BV_null in |- *. auto.
+intros a l H. intro.
+change (a :: l = false :: BV_null (length l)) in |- *.
+rewrite <- H. generalize H0. replace a with false. trivial.
+symmetry  in |- *. apply IsNull_false with (v := l). exact H0.
+apply IsNull_cons with (a := a). exact H0.
+Qed.
+
+Parameter DC_a : BoolList.	Axiom DC_asize : length DC_a = a_size.
+Parameter DC_d : BoolList.	Axiom DC_dsize : length DC_d = d_size.
+Fixpoint BV_increment (l : BoolList) : BoolList :=
+  match l with
+  | nil => nil
+  | false :: v => true :: v
+  | true :: v => false :: BV_increment v
+  end.
+
+
+Fixpoint BV_increment_carry (l : BoolList) : bool :=
+  match l with
+  | nil => true
+  | false :: v => false
+  | true :: v => BV_increment_carry v
+  end.
+
+
+
+Fixpoint BV_decrement (l : BoolList) : BoolList :=
+  match l with
+  | nil => nil
+  | false :: v => true :: BV_decrement v
+  | true :: v => false :: v
+  end.
+
+Fixpoint BV_decrement_carry (l : BoolList) : bool :=
+  match l with
+  | nil => true
+  | false :: v => BV_decrement_carry v
+  | true :: v => false
+  end.
+
+Fixpoint di (st : nat) : BoolList -> BoolList -> BoolList -> Memo -> BoolList :=
+  fun (di0 cx0 al0 : BoolList) (mem0 : Memo) =>
+  match st return BoolList with
+  | O => di0
+  | S t =>
+      match IsNull (cx t di0 cx0 al0 mem0) return BoolList with
+      | true => di t di0 cx0 al0 mem0
+      | false => BV_increment (di t di0 cx0 al0 mem0)
+      end
+  end
+
+ with cx (st : nat) : BoolList -> BoolList -> BoolList -> Memo -> BoolList :=
+  fun (di0 cx0 al0 : BoolList) (mem0 : Memo) =>
+  match st return BoolList with
+  | O => cx0
+  | S t =>
+      match IsNull (cx t di0 cx0 al0 mem0) return BoolList with
+      | true => cx t di0 cx0 al0 mem0
+      | false => BV_decrement (cx t di0 cx0 al0 mem0)
+      end
+  end
+
+ with al (st : nat) : BoolList -> BoolList -> BoolList -> Memo -> BoolList :=
+  fun (di0 cx0 al0 : BoolList) (mem0 : Memo) =>
+  match st return BoolList with
+  | O => al0
+  | S t =>
+      match IsNull (cx t di0 cx0 al0 mem0) return BoolList with
+      | true => al t di0 cx0 al0 mem0
+      | false => al t di0 cx0 al0 mem0
+      end
+  end
+
+ with mem (st : nat) : BoolList -> BoolList -> BoolList -> Memo -> Memo :=
+  fun (di0 cx0 al0 : BoolList) (mem0 : Memo) =>
+  match st return Memo with
+  | O => mem0
+  | S t =>
+      match IsNull (cx t di0 cx0 al0 mem0) return Memo with
+      | true => mem t di0 cx0 al0 mem0
+      | false =>
+          MemoWrite (mem t di0 cx0 al0 mem0)
+            (BV_to_nat (di t di0 cx0 al0 mem0)) (al t di0 cx0 al0 mem0)
+      end
+  end.
+
+(****************************************************************)
+(* Valeurs generales des registres *)
+
+Lemma di_t :
+ forall (t : nat) (di0 cx0 al0 : BoolList) (mem0 : Memo),
+ di (S t) di0 cx0 al0 mem0 =
+ match IsNull (cx t di0 cx0 al0 mem0) return BoolList with
+ | true => di t di0 cx0 al0 mem0
+ | false => BV_increment (di t di0 cx0 al0 mem0)
+ end.
+auto.
+Qed.
+
+Lemma cx_t :
+ forall (t : nat) (di0 cx0 al0 : BoolList) (mem0 : Memo),
+ cx (S t) di0 cx0 al0 mem0 =
+ match IsNull (cx t di0 cx0 al0 mem0) return BoolList with
+ | true => cx t di0 cx0 al0 mem0
+ | false => BV_decrement (cx t di0 cx0 al0 mem0)
+ end.
+auto.
+Qed.
+
+Lemma al_t :
+ forall (t : nat) (di0 cx0 al0 : BoolList) (mem0 : Memo),
+ al (S t) di0 cx0 al0 mem0 =
+ match IsNull (cx t di0 cx0 al0 mem0) return BoolList with
+ | true => al t di0 cx0 al0 mem0
+ | false => al t di0 cx0 al0 mem0
+ end.
+auto.
+Qed.
+
+Lemma al_constant :
+ forall (t : nat) (di0 cx0 al0 : BoolList) (mem0 : Memo),
+ al t di0 cx0 al0 mem0 = al0.
+simple induction t. auto.
+intros. rewrite al_t. elim (IsNull (cx n di0 cx0 al0 mem0)). apply H. apply H.
+Qed.
+
+Lemma mem_t :
+ forall (t : nat) (di0 cx0 al0 : BoolList) (mem0 : Memo),
+ mem (S t) di0 cx0 al0 mem0 =
+ match IsNull (cx t di0 cx0 al0 mem0) return Memo with
+ | true => mem t di0 cx0 al0 mem0
+ | false =>
+     MemoWrite (mem t di0 cx0 al0 mem0) (BV_to_nat (di t di0 cx0 al0 mem0))
+       (al t di0 cx0 al0 mem0)
+ end.
+auto.
+Qed.
+
+Lemma length_BV_increment :
+ forall v : BoolList, length (BV_increment v) = length v.
+simple induction v. auto.
+simple induction b.
+simpl in |- *. intros. rewrite H; trivial.
+simpl in |- *. intros. trivial.
+Qed.
+
+Lemma length_BV_decrement :
+ forall v : BoolList, length (BV_decrement v) = length v.
+simple induction v. auto.
+simple induction b.
+simpl in |- *. intros. trivial.
+simpl in |- *. intros. rewrite H; trivial.
+Qed.
+
+(****************************************************************)
+(* Longueurs des registres *)
+
+Lemma length_di :
+ forall t : nat, length (di t di_init cx_init al_init mem_init) = a_size.
+simple induction t. simpl in |- *. exact di_initsize.
+intros.
+rewrite di_t. elim (IsNull (cx n di_init cx_init al_init mem_init)). exact H.
+rewrite length_BV_increment. exact H.
+Qed.
+
+Lemma length_cx :
+ forall t : nat, length (cx t di_init cx_init al_init mem_init) = a_size.
+simple induction t. simpl in |- *. exact cx_initsize.
+intros.
+rewrite cx_t. elim (IsNull (cx n di_init cx_init al_init mem_init)). exact H.
+rewrite length_BV_decrement. exact H.
+Qed.
+
+Lemma length_al :
+ forall t : nat, length (al t di_init cx_init al_init mem_init) = d_size.
+intro. rewrite al_constant. exact al_initsize.
+Qed.
+
+Definition di1 (di0 cx0 al0 : BoolList) (mem0 : Memo) (ad0 da0 : BoolList) := di0.
+Definition cx1 (di0 cx0 al0 : BoolList) (mem0 : Memo) (ad0 da0 : BoolList) := cx0.
+Definition al1 (di0 cx0 al0 : BoolList) (mem0 : Memo) (ad0 da0 : BoolList) := al0.
+Definition mem1 (di0 cx0 al0 : BoolList) (mem0 : Memo) (ad0 da0 : BoolList) := mem0.
+Definition ad1 (di0 cx0 al0 : BoolList) (mem0 : Memo) (ad0 da0 : BoolList) := di0.
+Definition da1 (di0 cx0 al0 : BoolList) (mem0 : Memo) (ad0 da0 : BoolList) := al0.
+
+Definition compo_2_1_BV
+  (f : nat -> BoolList -> BoolList -> BoolList -> Memo -> BoolList -> BoolList -> BoolList)
+  (t : nat) (di0 cx0 al0 : BoolList) (mem0 : Memo) (ad0 da0 : BoolList) :=
+  f t (di1 di0 cx0 al0 mem0 ad0 da0) (cx1 di0 cx0 al0 mem0 ad0 da0)
+    (al1 di0 cx0 al0 mem0 ad0 da0) (mem1 di0 cx0 al0 mem0 ad0 da0)
+    (ad1 di0 cx0 al0 mem0 ad0 da0) (da1 di0 cx0 al0 mem0 ad0 da0).
+Definition compo_2_1_Memo
+  (f : nat -> BoolList -> BoolList -> BoolList -> Memo -> BoolList -> BoolList -> Memo)
+  (t : nat) (di0 cx0 al0 : BoolList) (mem0 : Memo) (ad0 da0 : BoolList) :=
+  f t (di1 di0 cx0 al0 mem0 ad0 da0) (cx1 di0 cx0 al0 mem0 ad0 da0)
+    (al1 di0 cx0 al0 mem0 ad0 da0) (mem1 di0 cx0 al0 mem0 ad0 da0)
+    (ad1 di0 cx0 al0 mem0 ad0 da0) (da1 di0 cx0 al0 mem0 ad0 da0).
+Fixpoint di2 (st : nat) : BoolList -> BoolList -> BoolList -> Memo -> BoolList -> BoolList -> BoolList :=
+  fun (di0 cx0 al0 : BoolList) (mem0 : Memo) (ad0 da0 : BoolList) =>
+  match st return BoolList with
+  | O => di0
+  | S t =>
+      match IsNull (cx2 t di0 cx0 al0 mem0 ad0 da0) return BoolList with
+      | true => di2 t di0 cx0 al0 mem0 ad0 da0
+      | false => di2 t di0 cx0 al0 mem0 ad0 da0
+      end
+  end
+
+ with cx2 (st : nat) : BoolList -> BoolList -> BoolList -> Memo -> BoolList -> BoolList -> BoolList :=
+  fun (di0 cx0 al0 : BoolList) (mem0 : Memo) (ad0 da0 : BoolList) =>
+  match st return BoolList with
+  | O => cx0
+  | S t =>
+      match IsNull (cx2 t di0 cx0 al0 mem0 ad0 da0) return BoolList with
+      | true => cx2 t di0 cx0 al0 mem0 ad0 da0
+      | false => BV_decrement (cx2 t di0 cx0 al0 mem0 ad0 da0)
+      end
+  end
+
+ with al2 (st : nat) : BoolList -> BoolList -> BoolList -> Memo -> BoolList -> BoolList -> BoolList :=
+  fun (di0 cx0 al0 : BoolList) (mem0 : Memo) (ad0 da0 : BoolList) =>
+  match st return BoolList with
+  | O => al0
+  | S t =>
+      match IsNull (cx2 t di0 cx0 al0 mem0 ad0 da0) return BoolList with
+      | true => al2 t di0 cx0 al0 mem0 ad0 da0
+      | false => al2 t di0 cx0 al0 mem0 ad0 da0
+      end
+  end
+
+ with mem2 (st : nat) : BoolList -> BoolList -> BoolList -> Memo -> BoolList -> BoolList -> Memo :=
+  fun (di0 cx0 al0 : BoolList) (mem0 : Memo) (ad0 da0 : BoolList) =>
+  match st return Memo with
+  | O => mem0
+  | S t =>
+      match IsNull (cx2 t di0 cx0 al0 mem0 ad0 da0) return Memo with
+      | true => mem2 t di0 cx0 al0 mem0 ad0 da0
+      | false =>
+          MemoWrite (mem2 t di0 cx0 al0 mem0 ad0 da0)
+            (BV_to_nat (ad2 t di0 cx0 al0 mem0 ad0 da0))
+            (da2 t di0 cx0 al0 mem0 ad0 da0)
+      end
+  end
+
+ with ad2 (st : nat) : BoolList -> BoolList -> BoolList -> Memo -> BoolList -> BoolList -> BoolList :=
+  fun (di0 cx0 al0 : BoolList) (mem0 : Memo) (ad0 da0 : BoolList) =>
+  match st return BoolList with
+  | O => ad0
+  | S t =>
+      match IsNull (cx2 t di0 cx0 al0 mem0 ad0 da0) return BoolList with
+      | true => ad2 t di0 cx0 al0 mem0 ad0 da0
+      | false => BV_increment (ad2 t di0 cx0 al0 mem0 ad0 da0)
+      end
+  end
+
+ with da2 (st : nat) : BoolList -> BoolList -> BoolList -> Memo -> BoolList -> BoolList -> BoolList :=
+  fun (di0 cx0 al0 : BoolList) (mem0 : Memo) (ad0 da0 : BoolList) =>
+  match st return BoolList with
+  | O => da0
+  | S t =>
+      match IsNull (cx2 t di0 cx0 al0 mem0 ad0 da0) return BoolList with
+      | true => da2 t di0 cx0 al0 mem0 ad0 da0
+      | false => da2 t di0 cx0 al0 mem0 ad0 da0
+      end
+  end.
+
+Definition di_2_1 := compo_2_1_BV di2.
+Definition cx_2_1 := compo_2_1_BV cx2.
+Definition al_2_1 := compo_2_1_BV al2.
+Definition mem_2_1 := compo_2_1_Memo mem2.
+Definition ad_2_1 := compo_2_1_BV ad2.
+Definition da_2_1 := compo_2_1_BV da2.
+
+Definition compo'_BV (f : BoolList -> BoolList -> BoolList -> Memo -> BoolList -> BoolList -> BoolList)
+  (t : nat) (di0 cx0 al0 : BoolList) (mem0 : Memo) (ad0 da0 : BoolList) :=
+  f (di_2_1 t di0 cx0 al0 mem0 ad0 da0) (cx_2_1 t di0 cx0 al0 mem0 ad0 da0)
+    (al_2_1 t di0 cx0 al0 mem0 ad0 da0) (mem_2_1 t di0 cx0 al0 mem0 ad0 da0)
+    (ad_2_1 t di0 cx0 al0 mem0 ad0 da0) (da_2_1 t di0 cx0 al0 mem0 ad0 da0).
+Definition compo'_Memo (f : BoolList -> BoolList -> BoolList -> Memo -> BoolList -> BoolList -> Memo)
+  (t : nat) (di0 cx0 al0 : BoolList) (mem0 : Memo) (ad0 da0 : BoolList) :=
+  f (di_2_1 t di0 cx0 al0 mem0 ad0 da0) (cx_2_1 t di0 cx0 al0 mem0 ad0 da0)
+    (al_2_1 t di0 cx0 al0 mem0 ad0 da0) (mem_2_1 t di0 cx0 al0 mem0 ad0 da0)
+    (ad_2_1 t di0 cx0 al0 mem0 ad0 da0) (da_2_1 t di0 cx0 al0 mem0 ad0 da0).
+
+Definition di3 (di0 cx0 al0 : BoolList) (mem0 : Memo) (ad0 da0 : BoolList) := ad0.
+Definition cx3 (di0 cx0 al0 : BoolList) (mem0 : Memo) (ad0 da0 : BoolList) := cx0.
+Definition al3 (di0 cx0 al0 : BoolList) (mem0 : Memo) (ad0 da0 : BoolList) := al0.
+Definition mem3 (di0 cx0 al0 : BoolList) (mem0 : Memo) (ad0 da0 : BoolList) := mem0.
+Definition ad3 (di0 cx0 al0 : BoolList) (mem0 : Memo) (ad0 da0 : BoolList) := ad0.
+Definition da3 (di0 cx0 al0 : BoolList) (mem0 : Memo) (ad0 da0 : BoolList) := da0.
+
+Definition di' := compo'_BV di3.
+Definition cx' := compo'_BV cx3.
+Definition al' := compo'_BV al3.
+Definition mem' := compo'_Memo mem3.
+Definition ad' := compo'_BV ad3.
+Definition da' := compo'_BV da3.
+
+Lemma cx2_t :
+ forall (t : nat) (di0 cx0 al0 : BoolList) (mem0 : Memo) (ad0 da0 : BoolList),
+ cx2 (S t) di0 cx0 al0 mem0 ad0 da0 =
+ match IsNull (cx2 t di0 cx0 al0 mem0 ad0 da0) return BoolList with
+ | true => cx2 t di0 cx0 al0 mem0 ad0 da0
+ | false => BV_decrement (cx2 t di0 cx0 al0 mem0 ad0 da0)
+ end.
+auto.
+Qed.
+Lemma cx_cx' :
+ forall t : nat,
+ cx t di_init cx_init al_init mem_init =
+ cx' t di_init cx_init al_init mem_init DC_a DC_d.
+unfold cx' in |- *. unfold compo'_BV in |- *. unfold cx3 in |- *. unfold cx_2_1, compo_2_1_BV in |- *.
+unfold di1, cx1, al1, mem1, ad1, da1 in |- *. simple induction t. auto.
+intros. rewrite cx_t. rewrite cx2_t. rewrite H. trivial.
+Qed.
+
+Lemma ad2_t :
+ forall (t : nat) (di0 cx0 al0 : BoolList) (mem0 : Memo) (ad0 da0 : BoolList),
+ ad2 (S t) di0 cx0 al0 mem0 ad0 da0 =
+ match IsNull (cx2 t di0 cx0 al0 mem0 ad0 da0) return BoolList with
+ | true => ad2 t di0 cx0 al0 mem0 ad0 da0
+ | false => BV_increment (ad2 t di0 cx0 al0 mem0 ad0 da0)
+ end.
+auto.
+Qed.
+Lemma di_di' :
+ forall t : nat,
+ di t di_init cx_init al_init mem_init =
+ di' t di_init cx_init al_init mem_init DC_a DC_d.
+unfold di' in |- *. unfold compo'_BV in |- *.
+unfold di3 in |- *. unfold ad_2_1, compo_2_1_BV in |- *. unfold di1, cx1, al1, mem1, ad1, da1 in |- *.
+simple induction t. auto.
+intros. rewrite di_t. rewrite ad2_t. rewrite H.
+replace (cx n di_init cx_init al_init mem_init) with
+ (cx' n di_init cx_init al_init mem_init DC_a DC_d).
+unfold cx', compo'_BV in |- *. unfold cx3 in |- *. unfold cx_2_1, compo_2_1_BV in |- *.
+unfold di1, cx1, al1, mem1, ad1, da1 in |- *.
+trivial. rewrite cx_cx'. trivial.
+Qed.
+
+Lemma al2_t :
+ forall (t : nat) (di0 cx0 al0 : BoolList) (mem0 : Memo) (ad0 da0 : BoolList),
+ al2 (S t) di0 cx0 al0 mem0 ad0 da0 =
+ match IsNull (cx2 t di0 cx0 al0 mem0 ad0 da0) return BoolList with
+ | true => al2 t di0 cx0 al0 mem0 ad0 da0
+ | false => al2 t di0 cx0 al0 mem0 ad0 da0
+ end.
+auto.
+Qed.
+Lemma al2_constant :
+ forall (t : nat) (di0 cx0 al0 : BoolList) (mem0 : Memo) (ad0 da0 : BoolList),
+ al2 t di0 cx0 al0 mem0 ad0 da0 = al0.
+simple induction t. simpl in |- *; trivial.
+intros. rewrite al2_t. elim (IsNull (cx2 n di0 cx0 al0 mem0 ad0 da0)). apply H.
+apply H.
+Qed.
+
+Lemma al_al' :
+ forall t : nat,
+ al t di_init cx_init al_init mem_init =
+ al' t di_init cx_init al_init mem_init DC_a DC_d.
+intro.
+rewrite al_constant.
+unfold al' in |- *.
+unfold compo'_BV in |- *.
+unfold al3 in |- *.
+unfold al_2_1 in |- *.
+unfold compo_2_1_BV in |- *.
+rewrite al2_constant.
+unfold al1 in |- *.
+trivial.
+Qed.
+
+Lemma mem2_t :
+ forall (t : nat) (di0 cx0 al0 : BoolList) (mem0 : Memo) (ad0 da0 : BoolList),
+ mem2 (S t) di0 cx0 al0 mem0 ad0 da0 =
+ match IsNull (cx2 t di0 cx0 al0 mem0 ad0 da0) return Memo with
+ | true => mem2 t di0 cx0 al0 mem0 ad0 da0
+ | false =>
+     MemoWrite (mem2 t di0 cx0 al0 mem0 ad0 da0)
+       (BV_to_nat (ad2 t di0 cx0 al0 mem0 ad0 da0))
+       (da2 t di0 cx0 al0 mem0 ad0 da0)
+ end.
+auto.
+Qed.
+Lemma da2_t :
+ forall (t : nat) (di0 cx0 al0 : BoolList) (mem0 : Memo) (ad0 da0 : BoolList),
+ da2 (S t) di0 cx0 al0 mem0 ad0 da0 =
+ match IsNull (cx2 t di0 cx0 al0 mem0 ad0 da0) return BoolList with
+ | true => da2 t di0 cx0 al0 mem0 ad0 da0
+ | false => da2 t di0 cx0 al0 mem0 ad0 da0
+ end.
+auto.
+Qed.
+Lemma da2_constant :
+ forall (t : nat) (di0 cx0 al0 : BoolList) (mem0 : Memo) (ad0 da0 : BoolList),
+ da2 t di0 cx0 al0 mem0 ad0 da0 = da0.
+simple induction t. simpl in |- *; trivial.
+intros. rewrite da2_t. elim (IsNull (cx2 n di0 cx0 al0 mem0 ad0 da0)). apply H.
+apply H.
+Qed.
+Lemma mem_mem' :
+ forall t : nat,
+ mem t di_init cx_init al_init mem_init =
+ mem' t di_init cx_init al_init mem_init DC_a DC_d.
+unfold mem', compo'_Memo in |- *.
+unfold mem3 in |- *.
+unfold mem_2_1, compo_2_1_Memo in |- *.
+unfold di1, cx1, al1, mem1, ad1, da1 in |- *.
+simple induction t.
+auto.
+
+intros.
+rewrite mem2_t.
+rewrite mem_t.
+rewrite H.
+replace (al n di_init cx_init al_init mem_init) with al_init.
+replace (da2 n di_init cx_init al_init mem_init di_init al_init) with al_init.
+rewrite (di_di' n).
+unfold di' in |- *.
+unfold compo'_BV in |- *.
+unfold di3 in |- *.
+unfold ad_2_1, compo_2_1_BV in |- *.
+unfold di1, cx1, al1, mem1, ad1, da1 in |- *.
+rewrite (cx_cx' n).
+unfold cx', compo'_BV, cx3 in |- *.
+unfold cx_2_1, compo_2_1_BV in |- *.
+unfold di1, cx1, al1, mem1, ad1, da1 in |- *.
+trivial.
+
+rewrite da2_constant.
+trivial.
+
+rewrite al_constant.
+trivial.
+Qed.
+
+Theorem Fill_ok :
+ forall t : nat,
+ di t di_init cx_init al_init mem_init =
+ di' t di_init cx_init al_init mem_init DC_a DC_d /\
+ cx t di_init cx_init al_init mem_init =
+ cx' t di_init cx_init al_init mem_init DC_a DC_d /\
+ al t di_init cx_init al_init mem_init =
+ al' t di_init cx_init al_init mem_init DC_a DC_d /\
+ mem t di_init cx_init al_init mem_init =
+ mem' t di_init cx_init al_init mem_init DC_a DC_d.
+split. apply di_di'.
+split. apply cx_cx'.
+split. apply al_al'. apply mem_mem'.
+Qed.
