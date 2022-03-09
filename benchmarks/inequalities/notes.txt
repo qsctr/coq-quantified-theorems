@@ -1,0 +1,17 @@
+
+len_rev_lt:  The full proof relies on an equality as a helper lemma, so this is an example that we can't handle currently.  (The partial proof in len_rev_lt.v that calls lfind won't work, and the given helper lemma there is not useful.)
+
+list_rev_len_le: We should be able to get the given helper lemma by generalization alone.  There are some other existing lemmas on numbers used, and some of them could be done if we support hypotheses.
+
+list_rev2_len_le: Same situation as list_rev_len_le.
+
+list_append_len_le: Same situation -- all existing lemmas.
+
+list_lt: Same situation -- all existing lemmas.
+
+list_le: Same situation -- all existing lemmas -- for the first two theorems.  The third theorem additionally relies on two equality lemmas, so those can't be handled currently.
+
+goal1: This contains variants of the CLAM theorem from goal1 but to use <.  Here we need an equality helper lemma, but then also several existing < lemmas that we should be able to find (some with hypotheses).
+
+goal40: This contains additional theorems about the proposition lst_subset.  Again we need an equality helper lemma but then also several lemmas about lst_subset that we should be able to find (some with hypotheses), as long as QuickChick can generate tests.  The nice thing about this example is that it's a different inductive proposition -- lst_subset.
+
