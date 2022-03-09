@@ -40,5 +40,5 @@ Proof.
   - simpl.
     apply (le_trans (len (append (rev x) (Cons n Nil))) (len (rev x) + len (Cons n Nil)) (S (len x))).
     apply len_append. simpl.
-    rewrite <- plus_n_Sm. apply le_n_S. rewrite <- plus_n_O. assumption.
+    rewrite <- plus_n_Sm. rewrite <- plus_n_O. apply le_n_S. assumption.
 Qed.
