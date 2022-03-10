@@ -1,17 +1,47 @@
 
 len_rev_lt:  The full proof relies on an equality as a helper lemma, so this is an example that we can't handle currently.  (The partial proof in len_rev_lt.v that calls lfind won't work, and the given helper lemma there is not useful.)
 
+Equality helpers: 2
+Implication helpers: 1, in-std
+
 list_rev_len_le: We should be able to get the given helper lemma by generalization alone.  There are some other existing lemmas on numbers used, and some of them could be done if we support hypotheses.
+
+Equality helpers: 2 (in std if we use internalized + function)
+Implication helpers: 1, in-std
 
 list_rev2_len_le: Same situation as list_rev_len_le.
 
+Equality helpers: 1 (in std if we use internalized + function)
+<= helper (used as equality?): 1
+Implication helpers: 0
+
 list_append_len_le: Same situation -- all existing lemmas.
+
+  - Theorem 0: 1 implication (std)
+  - Theorem 1: 1 implication (std)
+  - Theorem 2: 1 implication (std)
+  - Theorem 3: 1 implication (std)
+  - Theorem 4: 1 implication (std)
 
 list_lt: Same situation -- all existing lemmas.
 
+  - consLT: 1 neither, doesn't need induction
+  - appendLT: 1 implication (std)
+
 list_le: Same situation -- all existing lemmas -- for the first two theorems.  The third theorem additionally relies on two equality lemmas, so those can't be handled currently.
+  - consLE: 1 neither, doesn't need induction
+  - appendLE: 1 implication (std)
+  - appendLE2: 1 implication (std)
+  - appendLE3: 2 equality helpers, 1 implication (std)
 
 goal1: This contains variants of the CLAM theorem from goal1 but to use <.  Here we need an equality helper lemma, but then also several existing < lemmas that we should be able to find (some with hypotheses).
 
+  - Theorem 0: 1 equality helper, 1 implication (std),
+  - Theorem 1: 1 equality helper, 1 implication (std)
+
 goal40: This contains additional theorems about the proposition lst_subset.  Again we need an equality helper lemma but then also several lemmas about lst_subset that we should be able to find (some with hypotheses), as long as QuickChick can generate tests.  The nice thing about this example is that it's a different inductive proposition -- lst_subset.
 
+  - Theorem 0: 1 neither
+  - Theorem 1: 1 equality, 1 implication
+  - Theorem 2: 1 neither
+  - Theorem 3: 2 implications, 1 equality
