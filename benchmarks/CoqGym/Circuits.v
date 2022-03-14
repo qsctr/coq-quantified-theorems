@@ -162,28 +162,26 @@ Inductive BoolList : Type :=
 | nil : BoolList
 | cons : bool -> BoolList -> BoolList.
 
-Infix "::" := cons (at level 60, right associativity).
-
 Fixpoint length (l: BoolList): nat :=
   match l with
   | nil => O
-  | _ :: l' => S (length l')
+  | cons _ l' => S (length l')
   end.
 
 Fixpoint app (l m: BoolList): BoolList :=
   match l with
   | nil => m
-  | a :: l1 => a :: app l1 m
+  | cons a l1 => cons a (app l1 m)
   end.
 
 Infix "++" := app (right associativity, at level 60).
 
-Lemma app_eq2 : forall (x : bool) (l l' : BoolList), (x :: l) ++ l' = x :: l ++ l'.
+Lemma app_eq2 : forall (x : bool) (l l' : BoolList), (cons x l) ++ l' = cons x (l ++ l').
 auto. Qed.
 
 
 Lemma length_eq2 :
- forall (x : bool) (l : BoolList), length (x :: l) = S (length l).
+ forall (x : bool) (l : BoolList), length (cons x l) = S (length l).
   auto with arith. Qed.
 
 Fixpoint BV_full_adder_sum_nil (l0: BoolList) (b0: bool): BoolList :=
@@ -240,7 +238,7 @@ Qed.
 
 Lemma BV_full_adder_sum_eq2 :
  forall (vh : bool) (vt : BoolList) (b : bool),
- BV_full_adder_sum nil (vh :: vt) b =
+ BV_full_adder_sum nil (cons vh vt) b =
  cons (half_adder_sum vh b)
    (BV_full_adder_sum nil vt (half_adder_carry vh b)).
 Proof.
@@ -249,7 +247,7 @@ Qed.
 
 Lemma BV_full_adder_sum_eq3 :
  forall (vh : bool) (vt : BoolList) (b : bool),
- BV_full_adder_sum (vh :: vt) nil b =
+ BV_full_adder_sum (cons vh vt) nil b =
  cons (half_adder_sum vh b)
    (BV_full_adder_sum vt nil (half_adder_carry vh b)).
 Proof.
@@ -258,7 +256,7 @@ Qed.
 
 Lemma BV_full_adder_sum_eq4 :
  forall (vh : bool) (vt : BoolList) (wh : bool) (wt : BoolList) (b : bool),
- BV_full_adder_sum (vh :: vt) (wh :: wt) b =
+ BV_full_adder_sum (cons vh vt) (cons wh wt) b =
  cons (full_adder_sum vh wh b)
    (BV_full_adder_sum vt wt (full_adder_carry vh wh b)).
 Proof.
@@ -309,7 +307,7 @@ Qed.
 
 Lemma BV_full_adder_carry_eq2 :
  forall (vh : bool) (vt : BoolList) (b : bool),
- BV_full_adder_carry nil (vh :: vt) b =
+ BV_full_adder_carry nil (cons vh vt) b =
  BV_full_adder_carry nil vt (half_adder_carry vh b).
 Proof.
  auto.
@@ -318,7 +316,7 @@ Qed.
 
 Lemma BV_full_adder_carry_eq3 :
  forall (vh : bool) (vt : BoolList) (b : bool),
- BV_full_adder_carry (vh :: vt) nil b =
+ BV_full_adder_carry (cons vh vt) nil b =
  BV_full_adder_carry vt nil (half_adder_carry vh b).
 
 Proof.
@@ -327,7 +325,7 @@ Qed.
 
 Lemma BV_full_adder_carry_eq4 :
  forall (vh : bool) (vt : BoolList) (wh : bool) (wt : BoolList) (b : bool),
- BV_full_adder_carry (vh :: vt) (wh :: wt) b =
+ BV_full_adder_carry (cons vh vt) (cons wh wt) b =
  BV_full_adder_carry vt wt (full_adder_carry vh wh b).
 
 Proof.
@@ -371,7 +369,7 @@ Lemma length_BV_full_adder_sum :
  length v = length w -> length (BV_full_adder_sum v w cin) = length v.
 unfold length in |- *. simple induction v. simple induction w. intros. case cin. simpl in |- *. trivial.
 simpl in |- *. trivial.
-intros. absurd (length (nil:BoolList) = length (b :: b0)).
+intros. absurd (length (nil:BoolList) = length (cons b b0)).
 simpl in |- *. discriminate. exact H0. simple induction w. simpl in |- *. intros. discriminate H0.
 intros. simpl in |- *. rewrite H. trivial. generalize H1. simpl in |- *. auto.
 Qed.
@@ -608,19 +606,19 @@ Definition Mux (b : bool) (x y: BoolList) :=
 Definition lowbit (l : BoolList) :=
   match l with
   | nil => false
-  | b :: _ => b
+  | cons b _ => b
   end.
 
 Definition highs (l : BoolList) :=
   match l with
   | nil => nil
-  | _ :: v => v
+  | cons _ v => v
   end.
 
 Fixpoint BV_null (n: nat) : BoolList :=
   match n with
   | O => nil
-  | S n => false :: (BV_null n)
+  | S n => cons false (BV_null n)
   end.
 
 Fixpoint R1 (st : nat) : BoolList :=
@@ -669,17 +667,17 @@ auto with arith. Qed.
 Fixpoint rev (v : BoolList) : BoolList :=
   match v with
   | nil => nil
-  | head :: tail => app (rev tail) (head :: nil)
+  | cons head tail => app (rev tail) (cons head nil)
   end.
 
 Fixpoint trunc (v : BoolList) : nat -> BoolList :=
   fun n : nat =>
   match v return (BoolList) with
   | nil => nil
-  | b :: w =>
+  | cons b w =>
       match n return (BoolList) with
       | O => nil
-      | S p => b :: trunc w p
+      | S p => cons b (trunc w p)
       end
   end.
 
@@ -712,7 +710,7 @@ intros. rewrite length_eq2. simpl in |- *. rewrite H. trivial with arith.
 Qed.
 
 Lemma cons_assoc_app : forall (b : bool) (v1 v2: BoolList),
-    b :: (v1 ++ v2) = (b :: v1) ++ v2.
+    cons b (v1 ++ v2) = (cons b v1) ++ v2.
   induction v1; induction v2; auto.
 Qed.
 
@@ -850,7 +848,7 @@ Qed.
 Lemma strip_cons_S :
  forall (v : BoolList) (i : nat) (b : bool),
  (*****************)
- strip (b :: v) (S i) = strip v i.
+ strip (cons b v) (S i) = strip v i.
 unfold strip in |- *. simple induction i. simpl in |- *.
 elim minus_n_O. intro. replace (length v) with (length (rev v)).
 rewrite trunc_all. rewrite trunc_app. rewrite trunc_all.
@@ -918,7 +916,7 @@ Fixpoint list_const (n : nat) : bool -> BoolList :=
  fun x : bool =>
  match n return BoolList with
  | O => nil
- | S n' => x :: list_const n' x
+ | S n' => cons x (list_const n' x)
  end.
 
 Lemma length_list_const :
@@ -1477,7 +1475,7 @@ Axiom mem_initsize : MemoSize mem_init = a_size.
 Fixpoint IsNull (v : BoolList) : bool :=
   match v return bool with
   | nil => true
-  | b :: w =>
+  | cons b w =>
       match b return bool with
       | true => false
       | false => IsNull w
@@ -1507,7 +1505,7 @@ Lemma IsNull_BV_null :
  forall v : BoolList, IsNull v = true -> v = BV_null (length v).
 simple induction v. simpl in |- *. unfold BV_null in |- *. auto.
 intros a l H. intro.
-change (a :: l = false :: BV_null (length l)) in |- *.
+change (cons a l = cons false (BV_null (length l))) in |- *.
 rewrite <- H. generalize H0. replace a with false. trivial.
 symmetry  in |- *. apply IsNull_false with (v := l). exact H0.
 apply IsNull_cons with (a := a). exact H0.
@@ -1518,16 +1516,16 @@ Parameter DC_d : BoolList.	Axiom DC_dsize : length DC_d = d_size.
 Fixpoint BV_increment (l : BoolList) : BoolList :=
   match l with
   | nil => nil
-  | false :: v => true :: v
-  | true :: v => false :: BV_increment v
+  | cons false v => cons true v
+  | cons true v => cons false (BV_increment v)
   end.
 
 
 Fixpoint BV_increment_carry (l : BoolList) : bool :=
   match l with
   | nil => true
-  | false :: v => false
-  | true :: v => BV_increment_carry v
+  | cons false v => false
+  | cons true v => BV_increment_carry v
   end.
 
 
@@ -1535,15 +1533,15 @@ Fixpoint BV_increment_carry (l : BoolList) : bool :=
 Fixpoint BV_decrement (l : BoolList) : BoolList :=
   match l with
   | nil => nil
-  | false :: v => true :: BV_decrement v
-  | true :: v => false :: v
+  | cons false v => cons true (BV_decrement v)
+  | cons true v => cons false v
   end.
 
 Fixpoint BV_decrement_carry (l : BoolList) : bool :=
   match l with
   | nil => true
-  | false :: v => BV_decrement_carry v
-  | true :: v => false
+  | cons false v => BV_decrement_carry v
+  | cons true v => false
   end.
 
 Fixpoint di (st : nat) : BoolList -> BoolList -> BoolList -> Memo -> BoolList :=
