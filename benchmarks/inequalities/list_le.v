@@ -25,9 +25,7 @@ Fixpoint rev (l1 : lst) : lst :=
 
 Theorem consLT : forall l1 n, (len l1) <= (len (Cons n l1)).
 Proof.
-  induction l1.
-  - intros. simpl. apply le_0_n.
-  - intros. simpl. apply le_n_S. apply le_n_Sn.
+  intros. simpl. apply le_n_Sn.
 Qed.
 
 Theorem appendLT : forall l1 l2, (len l1) <= (len (append l1 l2)).
@@ -41,8 +39,7 @@ Theorem appendLT2 : forall l1 l2, (len l2) <= (len (append l1 l2)).
 Proof.
     intros. induction l1.
     - simpl. apply le_refl.
-    - simpl. apply (le_trans (len l2) (len (append l1 l2)) (S (len (append l1 l2)))). assumption.
-      apply le_n_Sn.
+    - simpl. apply Nat.le_le_succ_r. assumption.
 Qed.
 
 Lemma append_assoc: forall l1 l2 l3, append l1 (append l2 l3) = (append (append l1 l2) l3).
