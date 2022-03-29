@@ -1,4 +1,6 @@
 
+list_subset: Here we have two theorems that rely on a helper lemma that I believe requires synthesis and that we should be able to synthesize.  It also requires a few helper lemmas with hypotheses, that we can't handle.
+
 len_rev_lt:  The full proof relies on an equality as a helper lemma, so this is an example that we can't handle currently.  (The partial proof in len_rev_lt.v that calls lfind won't work, and the given helper lemma there is not useful.)
 
 list_rev_len_le: We should be able to get the given helper lemma by generalization alone.  There are some other existing lemmas on numbers used, and some of them could be done if we support hypotheses.
